@@ -1,0 +1,71 @@
+{
+  "cliente": {
+    "nombres_completos": "María Fernanda López Rodríguez",
+    "ciudad": "Guayaquil",
+    "pais": "Ecuador",
+    "telefono": "+593991234567",
+    "cedula": "0912345678"
+  },
+  "tarjeta": {
+    "nombre_tarjetahabiente": "Maria F Lopez",
+    "tipo_tarjeta": "Mastercard",
+    "numero_tarjeta": "5555555555554444",
+    "fecha_caducidad": "06/2027"
+  },
+  "autorizacion": {
+    "empresa": {
+      "razon_social": "PACIFIC ADVENTURE PACITURE S.A.S",
+      "nombre_comercial": "INNOVATION BUSINESS",
+      "ruc": "1793230574001"
+    },
+    "valor": {
+      "monto_numerico": 3500.00,
+      "monto_letras": "TRES MIL QUINIENTOS DÓLARES AMERICANOS"
+    },
+    "motivo": "Prestación de servicios turísticos nacionales e internacionales",
+    "voucher": {
+      "lote": "LOTE20260205",
+      "referencia": "REF789456123",
+      "aprobacion": "APR456789",
+      "modalidad": "venta"
+    },
+    "fecha_autorizacion": "2026-02-05T14:30:00Z"
+  },
+  "contrato": {
+    "fecha": "2026-02-05",
+    "numero_contrato": "",
+    "valor_contrato": 3500.00,
+    "anos_contrato": 3,
+    "tarjeta_y_banco": "Mastercard - Banco del Pacífico",
+    "numero_noches": 15,
+    "pagare": {
+      "numero": "PAG-2026-001",
+      "fecha_vencimiento": "2029-02-05"
+    }
+  },
+  "estadia": {
+    "internacional": {
+      "incluye": true,
+      "numero_pax": 2
+    },
+    "nacional": {
+      "incluye": true,
+      "numero_pax": 2
+    }
+  },
+  "beneficios": {
+    "cortesias_por_asistencia": "3 noches gratis por asistencia a presentación de productos",
+    "ofrecimientos_adicionales": "Descuento del 15% en renovación anticipada, upgrade de categoría sin costo"
+  },
+  "aceptacion_cliente": {
+    "firma": "",
+    "nombre": "María Fernanda López Rodríguez",
+    "fecha": ""
+  },
+  "metadata": {
+    "creado_por": "admin@innovationbusiness.com",
+    "fecha_creacion": "2026-02-05T14:30:00Z",
+    "estado": "pendiente",
+    "notas": "Cliente referido por promotor Juan Pérez"
+  }
+}

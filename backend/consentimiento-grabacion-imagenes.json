@@ -1,0 +1,76 @@
+{
+  "documento": {
+    "tipo": "CONSENTIMIENTO_GRABACION_IMAGENES",
+    "titulo": "Consentimiento informado para la grabación de imágenes y vídeos",
+    "lugar": "",
+    "fecha": ""
+  },
+  "cliente": {
+    "nombres_completos": "",
+    "cedula": ""
+  },
+  "empresa": {
+    "razon_social": "CATEQUILLATRAVEL CIA LTDA.",
+    "nombre_comercial": "INNOVATION BUSINESS",
+    "ruc": "1792997607001"
+  },
+  "autorizaciones": {
+    "captacion_imagen": true,
+    "captacion_video": true,
+    "captacion_audio": true,
+    "grabacion_documentos": true,
+    "almacenamiento_digital": true,
+    "uso_exclusivo_empresa": true
+  },
+  "documentos_relacionados": [
+    "Contrato de programa turístico",
+    "Alcance de la oferta",
+    "Autorización de descuento de pago por tarjeta de crédito",
+    "Voucher"
+  ],
+  "lugar_grabacion": {
+    "instalaciones": "",
+    "descripcion": ""
+  },
+  "condiciones_divulgacion": {
+    "permitido_en_caso_de": [
+      "Desconocimiento del consumo ante entidad financiera",
+      "Impugnación de firma en documentos",
+      "Alegación de servicio distinto al ofertado",
+      "Cualquier intento de desvirtuar el contrato"
+    ],
+    "exoneracion_responsabilidad_empresa": true
+  },
+  "derechos_empresa": {
+    "derecho_defensa": true,
+    "derecho_acciones_legales": true,
+    "derecho_repeticion_contra_vendedores": true
+  },
+  "cesion_derechos_imagen": {
+    "gratuita": true,
+    "revocable": false
+  },
+  "ratificacion_voucher": {
+    "fecha": "",
+    "monto_usd": 0.0,
+    "banco": "",
+    "modalidad": "",
+    "reconocimiento_consumo": true
+  },
+  "firmas": {
+    "cliente": {
+      "nombre": "",
+      "firma": ""
+    }
+  },
+  "contacto": {
+    "email": "servicioalclientebusiness@gmail.com",
+    "telefono": "0981473845",
+    "direccion": "10 de agosto y Naciones Unidas Edfi. 10 de agosto, Piso N.º 4 Ofic N.º 44"
+  },
+  "metadata": {
+    "creado_por": "",
+    "fecha_creacion": "",
+    "estado": "pendiente"
+  }
+}

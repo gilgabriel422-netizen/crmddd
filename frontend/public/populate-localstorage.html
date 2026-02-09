@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Poblar localStorage - CRM Frontend</title>
+    <style>body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding:2rem;background:#0f172a;color:#e6eef8}a{color:#9be7ff}</style>
+  </head>
+  <body>
+    <h1>Poblar localStorage con datos de ejemplo</h1>
+    <p>Esto cargará usuarios de ejemplo y algunos clientes en <strong>localStorage</strong>. Luego te redirige al inicio.</p>
+    <button id="run" style="padding:.6rem 1rem;background:#06b6d4;border:none;color:#042a2b;border-radius:6px;font-weight:600;cursor:pointer">Poblar ahora</button>
+    <p id="status" style="margin-top:1rem"></p>
+
+    <script>
+      document.getElementById('run').addEventListener('click', () => {
+        const now = Date.now();
+
+        const users = [
+          { id:1, nombre:'Administrador', email:'admin@crm.com', rol:'admin' },
+          { id:2, nombre:'Cliente GOLD', email:'cliente@crm.com', rol:'cliente' },
+          { id:3, nombre:'Cliente BLUE', email:'clienteib1@crm.com', rol:'clienteIB1' },
+          { id:4, nombre:'Cliente BLACK', email:'clienteib2@crm.com', rol:'clienteIB2' }
+        ];
+
+        // Create mock tokens using a simple payload marker; api.js accepts any token in offline mode as long as user exists
+        const makeToken = (u) => btoa(JSON.stringify({id:u.id,email:u.email,rol:u.rol,exp:Math.floor(Date.now()/1000)+86400})) + '.offline';
+
+        // Store example users individually and a default current user (none logged)
+        localStorage.setItem('example_users', JSON.stringify(users));
+
+        // Example clients list
+        const clientes = [
+          { id: 101, nombres: 'Juan', apellidos: 'Pérez', correo_electronico: 'juan.perez@example.com', contrato_number: 'C-101', rol:'cliente' },
+          { id: 102, nombres: 'María', apellidos: 'Gómez', correo_electronico: 'maria.gomez@example.com', contrato_number: 'C-102', rol:'clienteIB1' },
+          { id: 103, nombres: 'Carlos', apellidos: 'López', correo_electronico: 'carlos.lopez@example.com', contrato_number: 'C-103', rol:'clienteIB2' }
+        ];
+
+        localStorage.setItem('clientes_local', JSON.stringify(clientes));
+
+        // Do not auto-login; instead create tokens for convenience and store as templates
+        const templates = {};
+        users.forEach(u => { templates[u.email] = { token: makeToken(u), user: u }; });
+        localStorage.setItem('example_tokens', JSON.stringify(templates));
+
+        document.getElementById('status').textContent = 'Datos cargados en localStorage: usuarios y clientes de ejemplo. Ahora serás redirigido a /.';
+
+        setTimeout(() => { window.location.href = '/'; }, 1200);
+      })
+    </script>
+  </body>
+</html>

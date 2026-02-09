@@ -1,0 +1,177 @@
+{
+  "documento": {
+    "tipo": "DOCUMENTO_ENTENDIMIENTO_ACEPTACION",
+    "titulo": "Documento de Entendimiento y Aceptación",
+    "fecha": "",
+    "lugar": ""
+  },
+  "contrato": {
+    "numero_contrato": "",
+    "vigencia_anios": 0
+  },
+  "empresa": {
+    "razon_social": "INNOVATION BUSINESS",
+    "canales_autorizados": {
+      "telefono": "0981473845",
+      "email": "servicioalclientebusiness@gmail.com"
+    }
+  },
+  "aceptaciones": [
+    {
+      "id": 1,
+      "descripcion": "Recibí explicación clara y completa de los productos y servicios",
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 2,
+      "descripcion": "Mis beneficios se activan con la firma del contrato",
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 3,
+      "descripcion": "Si no estoy al día en pagos no puedo usar beneficios",
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 4,
+      "descripcion": "Duración del contrato aceptada",
+      "valor": "",
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 5,
+      "descripcion": "Cantidad de noches anuales y año de inicio aceptados",
+      "noches_anuales": 0,
+      "anio_inicio": 0,
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 6,
+      "descripcion": "Valor por noche aceptado",
+      "valor_usd": 65.0,
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 7,
+      "descripcion": "Modalidad de uso de noches aceptada (semanal o individual)",
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 8,
+      "descripcion": "Destinos nacionales aceptados",
+      "destinos": [
+        "Manta",
+        "Guayaquil",
+        "Quito",
+        "Cuenca",
+        "Tonsupa",
+        "Salinas",
+        "Loja"
+      ],
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 9,
+      "descripcion": "Condiciones Hot Weekends aceptadas",
+      "condiciones": {
+        "personas": "4 o 6",
+        "anticipacion_dias": 21,
+        "costo_temporada_baja": 149.0,
+        "costo_temporada_alta": 180.0,
+        "aplica_feriados": false
+      },
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 10,
+      "descripcion": "Tiempo de respuesta de cotizaciones aceptado",
+      "dias_respuesta": 5,
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 11,
+      "descripcion": "Beneficios de proveedores externos bajo solicitud",
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 12,
+      "descripcion": "Condiciones de desistimiento dentro de 72 horas",
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 13,
+      "descripcion": "Descuentos aplicables en cancelación de contrato",
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 14,
+      "descripcion": "No reembolso de valores de activación",
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 15,
+      "descripcion": "Certificados sujetos a pagos mínimos",
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 16,
+      "descripcion": "Documento es parte integral del contrato",
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 17,
+      "descripcion": "Ofrecimientos verbales no tienen validez",
+      "aceptado": false,
+      "firma": ""
+    },
+    {
+      "id": 18,
+      "descripcion": "Aceptación total de pago, inscripción y contrato",
+      "aceptado": false,
+      "firma": ""
+    }
+  ],
+  "beneficiarios": [
+    {
+      "tipo": "beneficiario_1",
+      "nombre": "",
+      "documento": "",
+      "firma": "",
+      "fecha": ""
+    },
+    {
+      "tipo": "beneficiario_2",
+      "nombre": "",
+      "documento": "",
+      "firma": "",
+      "fecha": ""
+    }
+  ],
+  "verificacion_contrato": {
+    "verificado_por": {
+      "nombre": "",
+      "firma": ""
+    }
+  },
+  "metadata": {
+    "creado_por": "",
+    "fecha_creacion": "",
+    "estado": "pendiente"
+  }
+}

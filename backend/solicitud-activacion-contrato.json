@@ -1,0 +1,38 @@
+{
+  "document_type": "activacion_contrato",
+  "company": {
+    "name": "INNOVATION BUSINESS",
+    "contact": {
+      "email": "servicioalclientebusiness@gmail.com",
+      "phone": "0981473845",
+      "address": {
+        "street": "10 de agosto y Naciones Unidas",
+        "building": "Edfi. 10 de agosto",
+        "floor": "4",
+        "office": "44"
+      }
+    }
+  },
+  "client": {
+    "full_name": "",
+    "document_type": "cedula_pasaporte",
+    "document_number": ""
+  },
+  "contract": {
+    "contract_number": "",
+    "activation_reason": "Primer uso del servicio",
+    "acceptance": {
+      "accepted_presentation": true,
+      "accepted_offer": true,
+      "payment_confirmed": true,
+      "administrative_costs_acknowledged": true
+    }
+  },
+  "statement": "Solicito la activación de mi contrato, el cual fue explicado, negociado y aceptado voluntariamente, incluyendo los costos administrativos y operativos derivados de dicha activación.",
+  "signatures": {
+    "client_signature": null,
+    "client_document": null,
+    "client_name": null,
+    "signed_at": null
+  }
+}

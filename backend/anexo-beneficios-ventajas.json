@@ -1,0 +1,133 @@
+{
+  "documento": {
+    "tipo": "ANEXO_BENEFICIOS_VENTAJAS",
+    "titulo": "Carta de Aceptación de Beneficios y Ventajas",
+    "programa": "INNOVATION BUSINESS",
+    "fecha_firma": ""
+  },
+  "contrato": {
+    "numero_contrato": "",
+    "beneficiario_numero": ""
+  },
+  "titular": {
+    "nombres_completos": "",
+    "documento_identidad": ""
+  },
+  "empresa": {
+    "razon_social": "INNOVATION BUSINESS",
+    "ruc": "1792997607001"
+  },
+  "declaracion_general": {
+    "informacion_recibida_clara": true,
+    "aceptacion_beneficios": true,
+    "aceptacion_costos_y_condiciones": true
+  },
+  "beneficios": {
+    "tiquetes_aereos": {
+      "fee_emision": "suprimido"
+    },
+    "hoteles": {
+      "cantidad_hoteles": 250000,
+      "garantia_mejor_tarifa": true,
+      "condicion_igualacion": "Cotización impresa de otra agencia con mismas características"
+    },
+    "alquiler_autos": {
+      "mejor_tarifa_mercado": true
+    },
+    "cruceros": {
+      "tarifas_reguladas": true
+    },
+    "paquetes_vacacionales": {
+      "tarifa_mas_baja_mercado": true
+    },
+    "innovation_getaway_weeks": {
+      "descripcion": "Alojamiento en más de 6000 resorts y 250000 hoteles"
+    },
+    "getaway_planes": {
+      "premium": {
+        "precio_desde_usd": 399,
+        "pasajeros": "2 a 6",
+        "anticipacion_dias": 21,
+        "destinos_aplicables": ["Cancún", "Orlando", "Caribe"]
+      },
+      "standard": {
+        "precio_desde_usd": 599,
+        "precio_hasta_usd": 999,
+        "pasajeros": "2 a 6",
+        "anticipacion_horas": 72
+      },
+      "plus": {
+        "precio_desde_usd": 499,
+        "precio_hasta_usd": 599,
+        "pasajeros": "2 a 6",
+        "anticipacion_dias": 90
+      }
+    },
+    "incentivos_primera_visita": {
+      "asesoria_visado": {
+        "tipos": ["Americana", "Canadiense", "Mexicana", "Schengen"],
+        "costo_preferencial": true,
+        "exclusivo_titular": true
+      },
+      "innovation_lawyers": {
+        "asesoria_legal": true,
+        "costo": 0
+      },
+      "bono_hospedaje_nacional": {
+        "dias": 3,
+        "noches": 2,
+        "personas": 6,
+        "vigencia_anios": 1,
+        "requiere_pago_impuestos": true,
+        "uso_exclusivo_departamentos_empresa": true
+      },
+      "asesoria_importacion": {
+        "incluye": [
+          "Análisis arancelario",
+          "Clasificación de productos",
+          "Permisos y autorizaciones",
+          "Certificaciones y etiquetado",
+          "Logística internacional",
+          "Verificación de proveedores",
+          "Capacitación"
+        ]
+      }
+    },
+    "beneficios_educativos": {
+      "experiencia_internacional": true,
+      "alianzas_universitarias": ["Universidad del Pacífico"],
+      "educacion_accesible": true,
+      "descuentos_porcentaje": "20% a 40%"
+    },
+    "work_and_travel": {
+      "alianzas_especializadas": true,
+      "tarifas_preferenciales": true,
+      "proveedor_variable": true
+    }
+  },
+  "condiciones_generales": {
+    "uso_beneficios_sujeto_disponibilidad": true,
+    "cambio_proveedor_sin_notificacion": true,
+    "beneficios_forman_parte_contrato": true
+  },
+  "firmas": {
+    "empresa": {
+      "firma": "",
+      "fecha": ""
+    },
+    "titular": {
+      "firma": "",
+      "fecha": ""
+    }
+  },
+  "contacto": {
+    "email": "servicioalclientebusiness@gmail.com",
+    "telefono": "0981473845",
+    "direccion": "10 de agosto y Naciones Unidas Edfi. 10 de agosto, Piso N.º 4 Ofic N.º 44"
+  },
+  "metadata": {
+    "creado_por": "",
+    "fecha_creacion": "",
+    "estado": "pendiente"
+  }
+}

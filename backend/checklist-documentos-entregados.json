@@ -1,0 +1,86 @@
+{
+  "documento": {
+    "tipo": "CHECK_LIST_DOCUMENTOS_ENTREGADOS",
+    "numero_contrato": "",
+    "cliente_numero": "",
+    "sala": "",
+    "lugar_suscripcion": "",
+    "fecha_suscripcion": "",
+    "responsable": ""
+  },
+  "cliente": {
+    "nombres_completos": "",
+    "cedula": ""
+  },
+  "ubicacion": {
+    "lugar_sala": ""
+  },
+  "documentos_entregados": [
+    {
+      "id": 1,
+      "nombre": "Consentimiento informado",
+      "entregado": false,
+      "firma_cliente": false,
+      "observaciones": ""
+    },
+    {
+      "id": 2,
+      "nombre": "Contrato civil de prestación de servicios",
+      "entregado": false,
+      "firma_cliente": false,
+      "observaciones": ""
+    },
+    {
+      "id": 3,
+      "nombre": "Documento de entendimiento y aceptación",
+      "entregado": false,
+      "firma_cliente": false,
+      "observaciones": ""
+    },
+    {
+      "id": 4,
+      "nombre": "Copia de voucher físico",
+      "entregado": false,
+      "firma_cliente": false,
+      "observaciones": ""
+    },
+    {
+      "id": 5,
+      "nombre": "Autorización de descuento para pagos con tarjeta",
+      "entregado": false,
+      "firma_cliente": false,
+      "observaciones": ""
+    },
+    {
+      "id": 6,
+      "nombre": "Carta aceptación de beneficios y ventajas",
+      "entregado": false,
+      "firma_cliente": false,
+      "observaciones": ""
+    },
+    {
+      "id": 7,
+      "nombre": "Carta de responsabilidad de diferimiento",
+      "entregado": false,
+      "firma_cliente": false,
+      "observaciones": ""
+    }
+  ],
+  "firmas": {
+    "empresa": {
+      "nombre": "INNOVATION BUSINESS",
+      "ruc": "1792997607001",
+      "firma": ""
+    },
+    "cliente": {
+      "nombre": "",
+      "cedula": "",
+      "firma": ""
+    }
+  },
+  "metadata": {
+    "creado_por": "",
+    "fecha_creacion": "",
+    "estado": "pendiente"
+  }
+}

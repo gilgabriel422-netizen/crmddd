@@ -1,0 +1,44 @@
+{
+  "documento": {
+    "tipo": "HOJA_BIENVENIDA",
+    "titulo": "La aventura empieza ahora",
+    "fecha_emision": "",
+    "estado": "informativo"
+  },
+  "mensaje_bienvenida": {
+    "encabezado": "¡La Aventura empieza ahora!",
+    "contenido": "Le damos la más cordial bienvenida a la familia INNOVATION BUSINESS y le felicitamos por su decisión de formar parte de nuestro programa turístico, diseñado para brindarle múltiples oportunidades de disfrute en familia."
+  },
+  "empresa": {
+    "razon_social": "INNOVATION BUSINESS",
+    "programa": "Programa Innovation Business"
+  },
+  "canales_atencion": {
+    "telefonos": {
+      "servicio_al_cliente": "0981473276",
+      "emergencias": "0981473845"
+    },
+    "correo_electronico": "servicioalclientebusiness@gmail.com",
+    "horarios_atencion": {
+      "dias": "Lunes a viernes",
+      "desde": "10:00",
+      "hasta": "17:00"
+    }
+  },
+  "direccion": {
+    "descripcion": "Av. 10 de agosto y Naciones Unidas",
+    "edificio": "Edif. 10 de agosto",
+    "piso": "Piso N.º 4",
+    "oficina": "Ofic. N.º 44"
+  },
+  "uso_documento": {
+    "requiere_firma": false,
+    "es_obligatorio": false,
+    "visible_para_cliente": true
+  },
+  "metadata": {
+    "creado_por": "",
+    "fecha_creacion": "",
+    "canal_entrega": "digital"
+  }
+}

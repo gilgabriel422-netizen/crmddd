@@ -1,0 +1,306 @@
+{
+  "reglas_incorporacion_documentos": {
+    "descripcion": "Guía de cuándo, cómo y bajo qué condiciones agregar cada documento al expediente del cliente",
+    "documentos": [
+      {
+        "id": 1,
+        "nombre": "Contrato Civil de Prestación de Servicios",
+        "tipo": "CONTRATO_PRESTACION_SERVICIOS",
+        "momento": "INICIO",
+        "fase": "Oferta aceptada",
+        "descripcion": "Documento base - primer contrato a firmar",
+        "documentos_previos_requeridos": [],
+        "responsable": "Ejecutivo de Ventas / Asesor",
+        "requisitos_cliente": [
+          "Datos personales completos",
+          "Documento de identidad",
+          "Contacto válido"
+        ],
+        "validaciones": [
+          "Cliente identificado y verificado",
+          "Datos completos",
+          "Firma del cliente presente"
+        ],
+        "efectos_agregacion": [
+          "Crea numero_contrato",
+          "Inicia vigencia",
+          "Habilita siguiente documentos"
+        ],
+        "secuencia": 1
+      },
+      {
+        "id": 2,
+        "nombre": "Consentimiento para Grabación de Imágenes y Vídeos",
+        "tipo": "CONSENTIMIENTO_GRABACION_IMAGENES",
+        "momento": "INICIAL",
+        "fase": "Después de contrato",
+        "descripcion": "Autorización para captación de imágenes, video, audio",
+        "documentos_previos_requeridos": [
+          "CONTRATO_PRESTACION_SERVICIOS"
+        ],
+        "responsable": "Asesor / Ejecutivo de Ventas",
+        "requisitos_cliente": [
+          "Autorizaciones claras de captura",
+          "Reconocimiento de derechos de empresa"
+        ],
+        "validaciones": [
+          "Todas autorizaciones = true",
+          "Firma del cliente presente",
+          "Vinculado a numero_contrato"
+        ],
+        "efectos_agregacion": [
+          "Habilita uso de imágenes en marketing",
+          "Evita reclamos por privacidad"
+        ],
+        "secuencia": 2
+      },
+      {
+        "id": 3,
+        "nombre": "Checklist de Documentos Entregados",
+        "tipo": "CHECK_LIST_DOCUMENTOS_ENTREGADOS",
+        "momento": "INICIAL",
+        "fase": "Verificación post-firma",
+        "descripcion": "Registro de entrega física de documentos al cliente",
+        "documentos_previos_requeridos": [
+          "CONTRATO_PRESTACION_SERVICIOS"
+        ],
+        "responsable": "Ejecutivo de Ventas / Área de Servicios",
+        "requisitos_cliente": [
+          "Presencia física o remota",
+          "Recepción de documentos"
+        ],
+        "validaciones": [
+          "Todos documentos marcados como entregados",
+          "Cliente firma cada ítem entregado",
+          "Observaciones si hay pendencias"
+        ],
+        "efectos_agregacion": [
+          "Prueba de entrega",
+          "Defensa legal ante reclamos",
+          "Cierra ciclo inicial"
+        ],
+        "secuencia": 3
+      },
+      {
+        "id": 4,
+        "nombre": "Documento de Entendimiento y Aceptación",
+        "tipo": "DOCUMENTO_ENTENDIMIENTO_ACEPTACION",
+        "momento": "VERIFICACION",
+        "fase": "Confirmación de comprensión",
+        "descripcion": "18 puntos de verificación - cliente confirma entender TODOS los términos",
+        "documentos_previos_requeridos": [
+          "CONTRATO_PRESTACION_SERVICIOS",
+          "CHECK_LIST_DOCUMENTOS_ENTREGADOS"
+        ],
+        "responsable": "Asesor (supervisado)",
+        "requisitos_cliente": [
+          "Comprensión real de términos",
+          "Firma punto por punto",
+          "Beneficiarios identificados"
+        ],
+        "validaciones": [
+          "TODOS los 18 ítems = aceptado + firmado",
+          "No permitir ninguno en false",
+          "Bloquer contrato si falta este"
+        ],
+        "efectos_agregacion": [
+          "Escudo legal ante 'no entendí'",
+          "Habilita siguiente documentos",
+          "Validación obligatoria"
+        ],
+        "secuencia": 4,
+        "critico": true
+      },
+      {
+        "id": 5,
+        "nombre": "Pagaré (Crédito)",
+        "tipo": "PAGARE",
+        "momento": "FINANCIERO",
+        "fase": "Si hay crédito",
+        "descripcion": "Documento financiero - obligación de pago con intereses",
+        "documentos_previos_requeridos": [
+          "CONTRATO_PRESTACION_SERVICIOS",
+          "DOCUMENTO_ENTENDIMIENTO_ACEPTACION"
+        ],
+        "responsable": "Área de Crédito / Finanzas",
+        "requisitos_cliente": [
+          "Solvencia verificada",
+          "Plan de pago acordado",
+          "Autorización de consulta a centrales de riesgo"
+        ],
+        "validaciones": [
+          "Firma empresa + deudor",
+          "Datos deudor completos",
+          "Monto definido",
+          "Plan de cuotas claro"
+        ],
+        "efectos_agregacion": [
+          "Crea obligación financiera",
+          "Genera derecho de cobranza",
+          "INMUTABLE una vez firmado",
+          "Bloquea ediciones posteriores"
+        ],
+        "secuencia": 5,
+        "condicional": "SI_CREDITO",
+        "critico": true
+      },
+      {
+        "id": 6,
+        "nombre": "Hoja de Bienvenida",
+        "tipo": "HOJA_BIENVENIDA",
+        "momento": "INFORMATIVO",
+        "fase": "Post-firma",
+        "descripcion": "Documento informativo (no requiere firma) - canales y contacto",
+        "documentos_previos_requeridos": [
+          "CONTRATO_PRESTACION_SERVICIOS"
+        ],
+        "responsable": "Soporte / Servicio al Cliente",
+        "requisitos_cliente": [
+          "Ninguno específico"
+        ],
+        "validaciones": [
+          "Generada automáticamente",
+          "Enviada por email"
+        ],
+        "efectos_agregacion": [
+          "Comunica canales disponibles",
+          "Bienvenida oficial",
+          "No bloquea procesos"
+        ],
+        "secuencia": 6,
+        "automatizable": true
+      },
+      {
+        "id": 7,
+        "nombre": "Solicitud de Activación de Contrato",
+        "tipo": "SOLICITUD_ACTIVACION_CONTRATO",
+        "momento": "CRITICO",
+        "fase": "Primer uso / Activación",
+        "descripcion": "Marca inicio real de servicios - habilita beneficios y gastos admin",
+        "documentos_previos_requeridos": [
+          "CONTRATO_PRESTACION_SERVICIOS",
+          "DOCUMENTO_ENTENDIMIENTO_ACEPTACION",
+          "CHECK_LIST_DOCUMENTOS_ENTREGADOS"
+        ],
+        "responsable": "Ejecutivo de Cuentas / Atención al Cliente",
+        "requisitos_cliente": [
+          "Solicitud explícita de activación",
+          "Confirmación de todas las declaraciones"
+        ],
+        "validaciones": [
+          "Todas declaraciones = true",
+          "Firma del solicitante",
+          "Sin documentos pendientes previos"
+        ],
+        "efectos_agregacion": [
+          "HABILITA beneficios",
+          "Genera gastos administrativos (no reembolsables)",
+          "Inicia conteo de noches",
+          "Fecha de activación = inicio vigencia real"
+        ],
+        "secuencia": 7,
+        "critico": true
+      },
+      {
+        "id": 8,
+        "nombre": "Anexo - Carta de Aceptación de Beneficios y Ventajas",
+        "tipo": "ANEXO_BENEFICIOS_VENTAJAS",
+        "momento": "CONTRACTUAL",
+        "fase": "Con o después de Activación",
+        "descripcion": "Detalle exhaustivo de beneficios - evita reclamos de 'no me ofrecieron esto'",
+        "documentos_previos_requeridos": [
+          "CONTRATO_PRESTACION_SERVICIOS",
+          "SOLICITUD_ACTIVACION_CONTRATO"
+        ],
+        "responsable": "Ejecutivo de Cuentas / Área Comercial",
+        "requisitos_cliente": [
+          "Lectura de beneficios",
+          "Aceptación clara de cada categoría"
+        ],
+        "validaciones": [
+          "Firma empresa + titular",
+          "Declaraciones generales completas",
+          "Vinculado a numero_contrato"
+        ],
+        "efectos_agregacion": [
+          "Habilita uso de beneficios",
+          "Defensa ante reclamaciones",
+          "Bloquea beneficios si estado !== aprobado"
+        ],
+        "secuencia": 8,
+        "critico": true
+      },
+      {
+        "id": 9,
+        "nombre": "Carta de Diferimiento",
+        "tipo": "CARTA_DIFERIMIENTO",
+        "momento": "CONDICIONAL",
+        "fase": "Si hay solicitud de diferimiento",
+        "descripcion": "Autorización de diferimiento de pagos - con causales y responsabilidades",
+        "documentos_previos_requeridos": [
+          "CONTRATO_PRESTACION_SERVICIOS",
+          "PAGARE",
+          "SOLICITUD_ACTIVACION_CONTRATO"
+        ],
+        "responsable": "Área de Crédito / Gerencia",
+        "requisitos_cliente": [
+          "Solicitud formal de diferimiento",
+          "Justificación de causal",
+          "Aceptación de responsabilidades"
+        ],
+        "validaciones": [
+          "Firma cliente",
+          "Aprobación de gerencia",
+          "Vinculado a numero_contrato + pagaré"
+        ],
+        "efectos_agregacion": [
+          "Suspende cobro temporal",
+          "Documenta responsabilidad",
+          "Genera compromisos adicionales",
+          "Activa causales de vencimiento anticipado"
+        ],
+        "secuencia": 9,
+        "condicional": "SI_DIFERIMIENTO"
+      }
+    ],
+    "reglas_generales": {
+      "bloqueadores": [
+        "Si DOCUMENTO_ENTENDIMIENTO_ACEPTACION no está 100% completo → BLOQUEAR todo"
+      ],
+      "secuencia_minima_obligatoria": [
+        1,
+        3,
+        4,
+        7,
+        8
+      ],
+      "automaticos": [
+        6
+      ],
+      "validar_antes_agregar": "Verificar que TODOS los documentos previos requeridos existan y estén en estado aprovado/firmado",
+      "inmutables": [
+        5,
+        9
+      ],
+      "comentario_clave": "Un cliente NO PUEDE usar beneficios si falta cualquiera de los 5 documentos obligatorios"
+    },
+    "flujos_tipicos": {
+      "flujo_basico": {
+        "descripcion": "Cliente sin crédito, sin diferimiento",
+        "secuencia": [1, 2, 3, 4, 6, 7, 8],
+        "duracion_promedio_dias": 1
+      },
+      "flujo_con_credito": {
+        "descripcion": "Cliente con crédito + pagaré",
+        "secuencia": [1, 2, 3, 4, 5, 6, 7, 8],
+        "duracion_promedio_dias": 2
+      },
+      "flujo_con_diferimiento": {
+        "descripcion": "Cliente solicita diferimiento",
+        "secuencia": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "duracion_promedio_dias": 5,
+        "requiere_aprobacion_gerencia": true
+      }
+    }
+  }
+}

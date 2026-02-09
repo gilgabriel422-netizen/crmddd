@@ -1,0 +1,161 @@
+{
+  "documento": {
+    "tipo": "CONTRATO_PRESTACION_SERVICIOS",
+    "numero_contrato": "",
+    "ciudad": "",
+    "fecha_firma": "",
+    "vigencia_anios": 0
+  },
+  "empresa": {
+    "razon_social": "CATEQUILLATRAVEL CIA LTDA.",
+    "nombre_comercial": "INNOVATION BUSINESS",
+    "ruc": "1792997607001",
+    "representante_legal": {
+      "nombre": "",
+      "cargo": "Representante Legal"
+    }
+  },
+  "comercializadora": {
+    "razon_social": "PACIFIC ADVENTURE PACITURE S.A.S.",
+    "ruc": "1793230574001",
+    "rol": "Comercializadora autorizada"
+  },
+  "contratante": {
+    "nombres_completos": "",
+    "cedula": "",
+    "correo": "",
+    "direccion": "",
+    "telefono": ""
+  },
+  "objeto_contrato": {
+    "descripcion": "Prestación de servicios turísticos en asesoría, reservas y beneficios con tarifas preferenciales",
+    "incluye_tiquetes_aereos": false
+  },
+  "beneficios_generales": {
+    "asesoria_turistica": true,
+    "cotizaciones_proformas": true,
+    "reservas_servicios": true,
+    "tarifas_preferenciales": true,
+    "canales_autorizados": {
+      "telefono": "0981473845",
+      "email": "servicioalclientebusiness@gmail.com",
+      "direccion": "10 de agosto y Naciones Unidas Edfi. 10 de agosto, Piso N.º 4 Ofic N.º 44",
+      "horario": "Lunes a viernes 10:00 a 17:00"
+    },
+    "tiempo_respuesta_dias": 5
+  },
+  "precio_y_pago": {
+    "valor_total_usd": 0.0,
+    "incluye_iva": true,
+    "derechos_contrato_usd": 0.0,
+    "no_reembolsable": true,
+    "forma_pago": {
+      "tarjeta_credito": {
+        "marca": "",
+        "banco": "",
+        "monto": 0.0,
+        "modalidad": ""
+      },
+      "credito_directo": {
+        "monto": 0.0,
+        "fecha_vencimiento": "",
+        "intervalo_dias": 30,
+        "pagare": true
+      }
+    },
+    "declaracion_origen_fondos": true
+  },
+  "activacion_servicio": {
+    "firma_contrato": true,
+    "solicitud_escrita": true,
+    "uso_certificados": true,
+    "uso_beneficios_proveedores": true
+  },
+  "uso_servicio": {
+    "solicitud_por_email": true,
+    "responsabilidad_datos_cliente": true,
+    "responsabilidad_proveedor_turistico": true
+  },
+  "beneficiarios": {
+    "beneficiario_principal": true,
+    "extensible_consanguinidad_hasta": 3,
+    "uso_por_terceros": true,
+    "requiere_autorizacion_escrita": true
+  },
+  "terminacion": {
+    "tipo": "unilateral",
+    "retencion_porcentaje": 45,
+    "derechos_contrato_no_reembolsable": true,
+    "terminacion_72_horas": {
+      "descuento": "100%",
+      "requiere_pago_total": true
+    }
+  },
+  "mejoramiento_oferta": {
+    "aplica": true,
+    "excluye_tiquetes_aereos": true,
+    "condiciones": [
+      "Mismas condiciones de cotización",
+      "Agencia física registrada en Ecuador",
+      "Permisos vigentes"
+    ]
+  },
+  "beneficios_hospedaje": {
+    "noches_por_anio": 0,
+    "temporada_baja_media": false,
+    "feriados_nacionales": false,
+    "destinos": [
+      "Manta",
+      "Guayaquil",
+      "Quito",
+      "Cuenca",
+      "Tonsupa",
+      "Salinas",
+      "Loja"
+    ],
+    "uso_compartido": true,
+    "uso_familiar": true
+  },
+  "beneficios_especiales": {
+    "getaway_weeks": true,
+    "planes": {
+      "premium": {
+        "precio_desde": 399,
+        "anticipacion_dias": 21
+      },
+      "standard": {
+        "precio_desde": 599,
+        "anticipacion_horas": 72
+      },
+      "plus": {
+        "precio_desde": 499,
+        "anticipacion_dias": 90
+      }
+    }
+  },
+  "jurisdiccion": {
+    "centro_arbitraje": "Cámara de Comercio de Quito",
+    "tipo": "Arbitraje en derecho",
+    "numero_arbitros": 3
+  },
+  "firmas": {
+    "empresa": {
+      "firma": "",
+      "fecha": ""
+    },
+    "contratante": {
+      "firma": "",
+      "fecha": ""
+    }
+  },
+  "contacto": {
+    "email": "servicioalclientebusiness@gmail.com",
+    "telefono": "0981473845",
+    "direccion": "10 de agosto y Naciones Unidas Edfi. 10 de agosto, Piso N.º 4 Ofic N.º 44"
+  },
+  "metadata": {
+    "creado_por": "",
+    "fecha_creacion": "",
+    "estado": "pendiente"
+  }
+}

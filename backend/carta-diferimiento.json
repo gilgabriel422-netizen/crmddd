@@ -1,0 +1,34 @@
+{
+  "documento": {
+    "tipo": "CARTA_DIFERIMIENTO",
+    "ciudad": "",
+    "fecha_emision": "",
+    "numero_contrato": ""
+  },
+  "cliente": {
+    "nombres_completos": "",
+    "documento_identidad": ""
+  },
+  "transaccion": {
+    "modalidad_actual": "corriente",
+    "fecha_transaccion": "",
+    "detalle_responsabilidad": "El cliente acepta que el consumo se mantenga en modalidad corriente y asume la responsabilidad de acudir al banco emisor para solicitar el diferido."
+  },
+  "empresa": {
+    "nombre_comercial": "INNOVATION BUSINESS",
+    "contacto_email": "servicioalclientebusiness@gmail.com",
+    "contacto_telefono": "0981473845",
+    "direccion": "10 de agosto y Naciones Unidas Edfi. 10 de agosto, Piso N.º 4 Ofic N.º 44"
+  },
+  "firmas": {
+    "firma_compania": "",
+    "firma_cliente": "",
+    "nombre_cliente_firma": "",
+    "documento_cliente_firma": ""
+  },
+  "metadata": {
+    "creado_por": "",
+    "fecha_creacion": "",
+    "estado": "pendiente"
+  }
+}

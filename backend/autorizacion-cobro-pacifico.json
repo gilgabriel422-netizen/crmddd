@@ -1,0 +1,80 @@
+{
+  "document_type": "autorizacion_cargo_tarjeta",
+  "company": {
+    "legal_name": "PACIFIC ADVENTURE PACITURE S.A.S",
+    "commercial_name": "INNOVATION BUSINESS",
+    "ruc": "1793230574001",
+    "contact": {
+      "email": "servicioalclientebusiness@gmail.com",
+      "phone": "0981473845",
+      "address": {
+        "street": "10 de agosto y Naciones Unidas",
+        "building": "Edf. 10 de agosto",
+        "floor": "4",
+        "office": "44"
+      }
+    }
+  },
+  "client": {
+    "full_name": null,
+    "city_country": null,
+    "phone": null,
+    "id_number": null
+  },
+  "card_authorization": {
+    "cardholder_name": null,
+    "card_type": null,
+    "card_number": null,
+    "expiration_date": null,
+    "amount": {
+      "numeric": null,
+      "text": null,
+      "currency": "USD"
+    },
+    "purpose": "Prestación de servicios turísticos nacionales e internacionales",
+    "voucher": {
+      "batch_number": null,
+      "reference_number": null,
+      "approval_number": null,
+      "payment_method": null
+    }
+  },
+  "signature": {
+    "cardholder_signature": null,
+    "cardholder_name": null,
+    "id_number": null,
+    "signed_at": null
+  },
+  "commercial_data": {
+    "liner": null,
+    "closer": null,
+    "contract": {
+      "date": null,
+      "contract_number": null,
+      "contract_value": null,
+      "contract_years": null
+    },
+    "payment_details": {
+      "card_and_bank": null,
+      "promissory_note": {
+        "exists": false,
+        "due_date": null
+      }
+    },
+    "stay_details": {
+      "international": {
+        "nights": null,
+        "pax": null
+      },
+      "national": {
+        "pax": null
+      }
+    },
+    "courtesies": null,
+    "additional_offers": null
+  },
+  "client_acceptance": {
+    "accepted": false,
+    "accepted_at": null
+  }
+}

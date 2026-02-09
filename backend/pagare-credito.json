@@ -1,0 +1,88 @@
+{
+  "documento": {
+    "tipo": "PAGARE",
+    "ciudad_suscripcion": "",
+    "fecha_suscripcion": "",
+    "fecha_inicio": "",
+    "fecha_vencimiento": ""
+  },
+  "acreedor": {
+    "razon_social": "CATEQUILLATRAVEL CIA LTDA.",
+    "ruc": "1792997607001",
+    "domicilio": "Quito, Ecuador"
+  },
+  "deudor": {
+    "nombres_completos": "",
+    "cedula": "",
+    "lugar_expedicion_cedula": "",
+    "direccion": "",
+    "telefono": ""
+  },
+  "obligacion": {
+    "monto_total_usd": 0.0,
+    "monto_letras": "",
+    "moneda": "USD",
+    "origen": "Financiamiento y crédito derivado de contrato de prestación de servicios",
+    "responsabilidad": "solidaria e incondicional"
+  },
+  "plan_pago": {
+    "saldo_inicial_usd": 0.0,
+    "numero_cuotas": 0,
+    "monto_cuota_usd": 0.0,
+    "periodicidad": "mensual"
+  },
+  "intereses": {
+    "interes_corriente": {
+      "aplica": true,
+      "tasa": "tasa vigente Banco Central del Ecuador"
+    },
+    "interes_mora": {
+      "aplica": true,
+      "tasa_maxima_legal": true
+    }
+  },
+  "causales_vencimiento_anticipado": [
+    "Mora en el pago de una o más cuotas",
+    "Incumplimiento de obligaciones contractuales",
+    "Deterioro o insuficiencia de garantías",
+    "Inicio de acciones judiciales",
+    "Cambio negativo en situación financiera",
+    "Fallecimiento del deudor",
+    "Concurso de acreedores o liquidación",
+    "Información financiera falsa o inexacta"
+  ],
+  "condiciones_adicionales": {
+    "capitalizacion_intereses": true,
+    "endoso_y_cesion_autorizados": true,
+    "costos_cobranza_a_cargo_deudor": true
+  },
+  "autorizaciones": {
+    "consulta_centrales_riesgo": true,
+    "reporte_comportamiento_crediticio": true
+  },
+  "relacion_contractual": {
+    "numero_contrato": "",
+    "tipo_contrato": "Contrato Civil de Prestación de Servicios"
+  },
+  "firmas": {
+    "acreedor": {
+      "firma": "",
+      "nombre_representante": "",
+      "fecha": ""
+    },
+    "deudor": {
+      "firma": "",
+      "fecha": ""
+    }
+  },
+  "contacto": {
+    "email": "servicioalclienteinnovations@gmail.com",
+    "telefono": "0981473276",
+    "direccion": "10 de agosto y Naciones Unidas Edfi. 10 de agosto, Piso N.º 4 Ofic N.º 44"
+  },
+  "metadata": {
+    "creado_por": "",
+    "fecha_creacion": "",
+    "estado": "pendiente"
+  }
+}

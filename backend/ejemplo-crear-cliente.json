@@ -1,0 +1,18 @@
+{
+  "clienteData": {
+    "first_name": "Ejemplo",
+    "last_name": "TestCliente",
+    "email": "ejemplo.test@email.com",
+    "phone": "+593999123456",
+    "document_number": "1234567890",
+    "contract_number": "CT-TEST-2025",
+    "empresa": "Empresa Test S.A.",
+    "telefono": "+593999123456",
+    "ciudad": "Quito",
+    "pais": "Ecuador",
+    "total_amount": 5000,
+    "iva": 600,
+    "neto": 4400
+  },
+  "rolCliente": "blue"
+}

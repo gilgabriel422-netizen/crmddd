@@ -34,7 +34,7 @@ export default function Beneficios() {
             <li className="py-2 px-3 rounded hover:bg-yellow-200 cursor-pointer" onClick={() => navigate('/reservas')}>Reservas</li>
             <li className="py-2 px-3 bg-yellow-200 rounded cursor-pointer hover:bg-yellow-300">Beneficios</li>
             <li className="py-2 px-3 rounded hover:bg-yellow-200 cursor-pointer" onClick={() => navigate('/contratos-fisicos')}>Contratos Físicos</li>
-            <li className="py-2 px-3 rounded hover:bg-yellow-200 cursor-pointer" onClick={() => navigate('/dashboard-atencion')}>Enviar a Atención</li>
+            <li className="py-2 px-3 rounded hover:bg-yellow-200 cursor-pointer" onClick={() => navigate('/enviar-atencion', { state: { from: '/dashboard-contratos' } })}>Enviar a Atención</li>
             <li className="py-2 px-3 rounded hover:bg-red-200 cursor-pointer text-red-700 font-semibold" onClick={logout}>Salir</li>
           </ul>
         </aside>

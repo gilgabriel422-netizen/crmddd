@@ -4,14 +4,10 @@ import Packages from '../components/Packages';
 import AdminPanel from './AdminPanel'
 import { useAuth } from '../contexts/AuthContext'
 
-// Fórmula Puntos IB según valor de venta
+// Puntos IB: 0.10 por cada $10 (1 punto por $10)
 const computePoints = (amount) => {
   const total = Number(amount) || 0
-  if (total >= 500 && total <= 1000) return 50
-  if (total >= 1001 && total <= 3000) return 100
-  if (total >= 3001 && total <= 5000) return 200
-  if (total >= 5001) return 300
-  return 0
+  return Math.floor(total / 10)
 }
 
 export default function DashboardContratos() {

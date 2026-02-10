@@ -51,9 +51,9 @@ const Calendar3DModal = ({ deptId, deptName, onClose, allowedEmails = null }) =>
         <div className="flex gap-6 overflow-x-auto py-2">
           {months.map((mDate, idx) => (
             <div key={idx} className="min-w-[280px] bg-gradient-to-br from-slate-50 to-white p-3 rounded-lg shadow-2xl transform transition-transform hover:rotate-3 hover:scale-105" style={{transformStyle:'preserve-3d'}}>
-              <div className="text-center mb-2 font-medium">{mDate.toLocaleString('default', { month: 'long' })} {mDate.getFullYear()}</div>
+              <div className="text-center mb-2 font-medium text-black">{mDate.toLocaleString('default', { month: 'long' })} {mDate.getFullYear()}</div>
               <div className="grid grid-cols-7 gap-1 text-xs">
-                {['D','L','M','M','J','V','S'].map(h => (<div key={h} className="text-center font-semibold">{h}</div>))}
+                {['D','L','M','M','J','V','S'].map(h => (<div key={h} className="text-center font-semibold text-black">{h}</div>))}
                 {(() => {
                   const firstDay = new Date(mDate.getFullYear(), mDate.getMonth(), 1).getDay()
                   const blanks = (firstDay + 6) % 7 // adjust so Monday=0
@@ -63,7 +63,7 @@ const Calendar3DModal = ({ deptId, deptName, onClose, allowedEmails = null }) =>
                   for (let d=1; d<=total; d++) {
                     const reserved = isDateReserved(mDate.getFullYear(), mDate.getMonth(), d)
                     cells.push(
-                      <div key={d} className={`p-1 rounded text-center ${reserved ? 'bg-red-500 text-white font-semibold' : 'bg-white text-gray-800'}`}>
+                      <div key={d} className={`p-1 rounded text-center ${reserved ? 'bg-red-500 text-white font-semibold' : 'bg-white text-black font-medium'}`}>
                         {d}
                       </div>
                     )

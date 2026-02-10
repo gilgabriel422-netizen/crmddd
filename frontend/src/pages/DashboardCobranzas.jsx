@@ -41,17 +41,13 @@ function PagoModal({ clientes, clientePreseleccionado, onClose, onSave }) {
         <h3 className="text-xl font-semibold mb-4">Nuevo pago</h3>
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Elegir cliente</label>
             <select value={clientId} onChange={e => setClientId(e.target.value)} className="w-full border p-2 rounded" required>
               <option value="">-- Elegir cliente --</option>
               {(clientes || []).map(c => (
                 <option key={c.id} value={c.id}>{c.first_name} {c.last_name} — {c.contract_number || c.email}</option>
               ))}
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Valor del pago</label>
-            <input type="number" step="0.01" min="0" value={valor} onChange={e => setValor(e.target.value)} placeholder="0.00" className="w-full border p-2 rounded" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Forma de pago</label>
@@ -64,11 +60,15 @@ function PagoModal({ clientes, clientePreseleccionado, onClose, onSave }) {
             </select>
           </div>
           <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Valor del pago</label>
+            <input type="number" step="0.01" min="0" value={valor} onChange={e => setValor(e.target.value)} placeholder="0.00" className="w-full border p-2 rounded" />
+          </div>
+          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de pago</label>
             <input type="date" value={fechaPago} onChange={e => setFechaPago(e.target.value)} className="w-full border p-2 rounded" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Observación</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Observación (opcional)</label>
             <textarea value={observacion} onChange={e => setObservacion(e.target.value)} rows={2} className="w-full border p-2 rounded" placeholder="Opcional" />
           </div>
         </div>
@@ -94,7 +94,7 @@ function ConvenioModal({ clientes, onClose, onSave }) {
 
   const handleRegistrar = async () => {
     if (!clientId || !acuerdoPago || parseFloat(acuerdoPago) <= 0) {
-      alert('Seleccione un cliente e ingrese el acuerdo de pago (monto).');
+      alert('Seleccione un cliente e ingrese el monto acordado.');
       return;
     }
     setSaving(true);
@@ -126,7 +126,7 @@ function ConvenioModal({ clientes, onClose, onSave }) {
         <h3 className="text-xl font-semibold mb-4">Nuevo convenio</h3>
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Elegir cliente</label>
             <select value={clientId} onChange={e => setClientId(e.target.value)} className="w-full border p-2 rounded" required>
               <option value="">-- Elegir cliente --</option>
               {(clientes || []).map(c => (
@@ -135,15 +135,15 @@ function ConvenioModal({ clientes, onClose, onSave }) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Acuerdo de pago (monto total)</label>
-            <input type="number" step="0.01" min="0" value={acuerdoPago} onChange={e => setAcuerdoPago(e.target.value)} placeholder="0.00" className="w-full border p-2 rounded" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de pagos</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de nuevo pago</label>
             <input type="date" value={fechaPagos} onChange={e => setFechaPagos(e.target.value)} className="w-full border p-2 rounded" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Manera de pagos</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Monto acordado</label>
+            <input type="number" step="0.01" min="0" value={acuerdoPago} onChange={e => setAcuerdoPago(e.target.value)} placeholder="0.00" className="w-full border p-2 rounded" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Forma de pago</label>
             <select value={maneraPagos} onChange={e => setManeraPagos(e.target.value)} className="w-full border p-2 rounded">
               <option value="">Seleccionar...</option>
               <option value="Efectivo">Efectivo</option>
@@ -282,13 +282,15 @@ export default function DashboardCobranzas() {
 
         {/* Módulo Convenios */}
         <div className="bg-yellow-100 bg-opacity-90 rounded-lg shadow p-4 border-2 border-yellow-600">
-          <h2 className="text-2xl font-bold mb-2" style={{ color: '#222' }}>Convenios</h2>
-          <button
-            className="bg-gradient-to-r from-yellow-400 to-yellow-700 text-black px-3 py-1 rounded mb-2 border border-yellow-700 shadow"
-            onClick={() => setShowConvenio(true)}
-          >
-            Nuevo convenio
-          </button>
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-2xl font-bold" style={{ color: '#222' }}>Convenios</h2>
+            <button
+              className="bg-gradient-to-r from-yellow-400 to-yellow-700 text-black px-3 py-1 rounded border border-yellow-700 shadow"
+              onClick={() => setShowConvenio(true)}
+            >
+              Nuevo convenio
+            </button>
+          </div>
           <ul className="mt-2 max-h-48 overflow-y-auto">
             {convenios.map((cv, i) => (
               <li key={i} className="border-b border-yellow-400 py-1 text-black text-sm">

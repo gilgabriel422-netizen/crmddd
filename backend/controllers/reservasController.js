@@ -1,5 +1,6 @@
 const Reserva = require('../models/Reserva');
 const Cliente = require('../models/Cliente');
+const Mensaje = require('../models/Mensaje');
 const sequelize = require('../config/database');
 
 exports.getAllReservas = async (req, res) => {
@@ -92,8 +93,23 @@ exports.createReserva = async (req, res) => {
     });
 
     console.log('✅ Reserva creada:', result);
+
+    const reservaCreada = result[0] || result;
+    const numeroReserva = reservaCreada?.numero_reserva || `RES-${Date.now()}`;
+    // Crear mensaje en bandeja para que llegue a atención al cliente
+    try {
+      await Mensaje.create({
+        asunto: `Nueva reserva ${numeroReserva}`,
+        contenido: `Reserva creada: ${numeroReserva}\nCliente ID: ${finalClienteId}\nEntrada: ${fecha_inicio || reservaCreada?.fecha_entrada || 'N/A'}\nSalida: ${fecha_fin || reservaCreada?.fecha_salida || 'N/A'}\nNoches: ${cantidad_noches || reservaCreada?.noches || 'N/A'}\nPersonas: ${cantidad_personas || reservaCreada?.personas || 'N/A'}${observaciones ? '\nObservaciones: ' + observaciones : ''}`,
+        usuario_id: finalClienteId,
+        tipo_remitente: 'cliente',
+        estado: 'pendiente'
+      });
+    } catch (errMsg) {
+      console.warn('No se pudo crear mensaje de reserva en bandeja:', errMsg.message);
+    }
     
-    res.status(201).json(result[0] || result);
+    res.status(201).json(reservaCreada);
   } catch (error) {
     console.error('❌ Error al crear reserva:', error);
     res.status(500).json({ error: 'Error al crear reserva', detalle: error.message });

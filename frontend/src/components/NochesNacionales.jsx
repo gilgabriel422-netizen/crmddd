@@ -13,7 +13,7 @@ const LOCATIONS = [
   {
     id: 'cuenca',
     title: 'DEPARTAMENTO EN CUENCA',
-    image: 'https://images.unsplash.com/photo-1505904267569-6b6f1d0a7f11?auto=format&fit=crop&w=1200&q=60',
+    image: 'https://images.unsplash.com/photo-1578645510447-e2b6915018d5?auto=format&fit=crop&w=1200&q=60',
     price: 90
   }
 ]

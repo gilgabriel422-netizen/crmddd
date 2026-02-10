@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, MapPin, DollarSign, Star } from 'lucide-react'
 import TestimonialsPremium from '../components/TestimonialsPremium'
 
@@ -94,12 +95,12 @@ const HomePageDorada = () => {
             Descubre los Mejores Destinos del Mundo
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <button className="px-8 py-4 bg-white text-amber-900 font-bold rounded-lg hover:bg-amber-50 transition text-lg">
+            <Link to="/paquetes" className="px-8 py-4 bg-white text-amber-900 font-bold rounded-lg hover:bg-amber-50 transition text-lg inline-block">
               Explorar Paquetes
-            </button>
-            <button className="px-8 py-4 bg-amber-300 text-amber-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg">
+            </Link>
+            <Link to="/contactanos" className="px-8 py-4 bg-amber-300 text-amber-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg inline-block">
               Contactarnos
-            </button>
+            </Link>
           </div>
         </div>
       </section>

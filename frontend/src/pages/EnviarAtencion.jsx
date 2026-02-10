@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Send, Trash2 } from 'lucide-react';
 
 export default function EnviarAtencion() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mensajes, setMensajes] = useState([]);
   const [nuevoMensaje, setNuevoMensaje] = useState('');
   const [asunto, setAsunto] = useState('');
@@ -18,6 +19,15 @@ export default function EnviarAtencion() {
     if (role === 'gold' || role === 'clienteib1' || role === 'cliente_ib1') return '/cliente-ib1';
     if (role === 'black' || role === 'clienteib2' || role === 'cliente_ib2') return '/cliente-black';
     return '/cliente';
+  };
+
+  const getVolverPath = () => {
+    if (location.state?.from) return location.state.from;
+    const email = (user?.email || '').toString().toLowerCase();
+    if (email === 'contratos@crm.com' || email === 'contratos') return '/dashboard-contratos';
+    const role = (user?.rol || user?.role || '').toString().toLowerCase();
+    if (role === 'contratos') return '/dashboard-contratos';
+    return getClientPanelPath();
   };
 
   useEffect(() => {
@@ -107,7 +117,7 @@ export default function EnviarAtencion() {
         <aside className="col-span-3 bg-yellow-100 rounded-lg p-4 shadow">
           <h2 className="text-xl font-bold mb-4">Menú</h2>
           <ul className="space-y-2 text-sm">
-            <li className="py-2 px-3 rounded hover:bg-yellow-200 cursor-pointer" onClick={() => navigate(getClientPanelPath())}>Volver al Panel</li>
+            <li className="py-2 px-3 rounded hover:bg-yellow-200 cursor-pointer" onClick={() => navigate(getVolverPath())}>Volver al Panel</li>
             <li className="py-2 px-3 bg-yellow-200 rounded cursor-pointer hover:bg-yellow-300">Enviar a Atención</li>
             <li className="py-2 px-3 rounded hover:bg-red-200 cursor-pointer text-red-700 font-semibold" onClick={logout}>Salir</li>
           </ul>

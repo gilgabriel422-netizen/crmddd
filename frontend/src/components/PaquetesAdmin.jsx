@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Edit2, Trash2, Plus, X } from 'lucide-react';
+import { paquetesInicio } from '../data/paquetesInicio';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -126,6 +127,29 @@ export default function PaquetesAdmin() {
         <p className="text-gray-600">Administra los paquetes turísticos disponibles para tus clientes</p>
       </div>
 
+      {/* Paquetes mostrados en la página de inicio (todos los que tenemos en inicio) */}
+      <div className="mb-10">
+        <h3 className="text-xl font-bold text-gray-800 mb-3">Paquetes de la página de inicio</h3>
+        <p className="text-gray-600 text-sm mb-4">Todos los paquetes actualmente mostrados en inicio.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {paquetesInicio.map((p) => (
+            <div key={p.id} className="p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition flex flex-col">
+              <div className="h-36 rounded overflow-hidden bg-gray-100 mb-3">
+                <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+              </div>
+              <h4 className="font-bold text-gray-800">{p.name}</h4>
+              <p className="text-sm text-gray-600 line-clamp-2 flex-1">{p.description}</p>
+              <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                <span className="font-semibold text-gray-800">{p.price}</span>
+                <span className="text-gray-500">|</span>
+                <span>{p.duration}</span>
+                <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">{p.type}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Mensajes de error y éxito */}
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex justify-between items-center">
@@ -140,6 +164,8 @@ export default function PaquetesAdmin() {
         </div>
       )}
 
+      {/* Gestión de paquetes desde API */}
+      <h3 className="text-xl font-bold text-gray-800 mb-3">Gestión de paquetes (crear/editar desde API)</h3>
       {/* Botón para agregar nuevo paquete */}
       <div className="mb-6">
         {!showForm && (

@@ -16,7 +16,7 @@ export default function BeneficiosCliente({ clienteId }) {
   const [montoConsumir, setMontoConsumir] = useState('');
   const [descripcion, setDescripcion] = useState('');
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('authToken');
 
   useEffect(() => {
     if (clienteId) {

@@ -24,7 +24,7 @@ export default function BeneficiosAdmin() {
     fecha_vencimiento: ''
   });
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('authToken');
 
   useEffect(() => {
     cargarClientes();

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const VisorPlantillaContrato = ({ cliente }) => {
   const [plantilla, setPlantilla] = useState(null);
@@ -41,25 +41,6 @@ const VisorPlantillaContrato = ({ cliente }) => {
     }
   };
 
-  const descargarPDF = async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-      
-      // Buscar contratos del cliente
-      const response = await axios.get(`${API_URL}/contratos/cliente/${cliente.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.data.data && response.data.data.length > 0) {
-        const contratoId = response.data.data[0].id;
-        window.open(`${API_URL}/contratos/${contratoId}/documento?token=${token}`, '_blank');
-      }
-    } catch (err) {
-      console.error('Error al descargar:', err);
-      alert('Error al descargar el documento');
-    }
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex gap-3">
@@ -69,12 +50,6 @@ const VisorPlantillaContrato = ({ cliente }) => {
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
         >
           {loading ? 'Cargando...' : '📋 Ver Plantilla'}
-        </button>
-        <button
-          onClick={descargarPDF}
-          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-        >
-          📄 Descargar Documento
         </button>
       </div>
 

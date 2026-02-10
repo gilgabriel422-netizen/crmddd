@@ -4,9 +4,19 @@ import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import NotificationBell from '../components/NotificationBell'
 
+const MODULES = [
+  { id: 'bandeja', name: 'Bandeja de Mensajes', icon: '📧' },
+  { id: 'requerimientos', name: 'Requerimientos', icon: '📋' },
+  { id: 'asignados', name: 'Clientes asignados a Atención', icon: '👥' },
+  { id: 'clientes', name: 'Clientes', icon: '📇' },
+  { id: 'reservas', name: 'Reservas Pendientes', icon: '📅' },
+  { id: 'historial', name: 'Historial / Postventa', icon: '📂' }
+]
+
 export default function DashboardAtencionCliente() {
   const { authed, logout } = useAuth()
   const navigate = useNavigate()
+  const [activeModule, setActiveModule] = useState('bandeja')
   const [requerimientos] = useState([])
   const [postventa] = useState([])
   const [showRequerimiento, setShowRequerimiento] = useState(false)
@@ -50,146 +60,219 @@ export default function DashboardAtencionCliente() {
     try {
       setLoadingReservas(true)
       const api = await import('../services/api')
-      console.log('📍 Cargando reservas desde /api/reservas...')
       const response = await api.default.get('/api/reservas')
-      console.log('📦 Respuesta recibida:', response.data)
       const reservas = Array.isArray(response.data) ? response.data : []
-      console.log('🔍 Total de reservas:', reservas.length)
       const pendientes = reservas.filter(r => r.estado === 'pendiente')
-      console.log('⏳ Reservas pendientes:', pendientes.length, pendientes)
       setReservasPendientes(pendientes)
     } catch (error) {
-      console.error('❌ Error cargando reservas:', error)
       setReservasPendientes([])
     } finally {
       setLoadingReservas(false)
     }
   }
 
+  const openWelcome = () => {
+    setSelectedWelcomeClientId('')
+    setWelcomeTemplate('')
+    setWelcomePhone('')
+    setShowWelcomeModal(true)
+  }
+
   return (
-    <div className="dashboard-gold-bg min-h-screen p-6">
-      <div className="max-w-6xl mx-auto flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-black">Panel de Atención</h1>
-        <div className="flex items-center gap-4">
-          <button className="px-4 py-2 bg-green-600 text-white rounded font-medium hover:bg-green-700" onClick={() => { setSelectedWelcomeClientId(''); setWelcomeTemplate(''); setWelcomePhone(''); setShowWelcomeModal(true); }}>Dar bienvenida</button>
-          <NotificationBell />
-          <button className="px-4 py-2 border rounded text-red-700 hover:bg-red-50" onClick={logout}>Salir</button>
-        </div>
-      </div>
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="col-span-1 bg-white bg-opacity-80 rounded-lg shadow p-4">
-          <h2 className="text-xl font-bold mb-2 text-black">Panel Atención</h2>
+    <div className="dashboard-gold-bg min-h-screen flex">
+      {/* Sidebar módulos */}
+      <aside className="w-56 bg-white bg-opacity-90 shadow-lg flex-shrink-0 p-3">
+        <h2 className="text-lg font-bold text-black mb-3 px-2">Panel de Atención</h2>
+        <nav className="space-y-1">
+          {MODULES.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setActiveModule(m.id)}
+              className={`w-full text-left px-3 py-2 rounded-lg font-medium transition flex items-center gap-2 ${
+                activeModule === m.id
+                  ? 'bg-gradient-to-r from-yellow-400 to-yellow-700 text-black'
+                  : 'text-gray-700 hover:bg-yellow-100'
+              }`}
+            >
+              <span>{m.icon}</span>
+              <span className="text-sm">{m.name}</span>
+            </button>
+          ))}
+        </nav>
+        <div className="mt-4 pt-4 border-t border-gray-200">
           <button
-            className="w-full mb-2 px-3 py-2 bg-gradient-to-r from-yellow-400 to-yellow-700 text-black rounded hover:opacity-90 font-semibold"
-            onClick={() => navigate('/bandeja-mensajes')}
+            className="w-full px-3 py-2 border rounded text-red-700 hover:bg-red-50 font-medium"
+            onClick={logout}
           >
-            📧 Bandeja de Mensajes
+            Salir
           </button>
-          <button
-            className="w-full mb-2 px-3 py-2 bg-gradient-to-r from-yellow-400 to-yellow-700 text-black rounded"
-            onClick={() => setShowRequerimiento(true)}
-          >
-            Nuevo Requerimiento
-          </button>
-          <h3 className="font-semibold mt-2">Requerimientos</h3>
-          <ul>
-            {requerimientos.map((r, i) => (
-              <li key={i} className="border-b py-1">
-                {r.cliente} - {r.detalle}
-              </li>
-            ))}
-          </ul>
         </div>
+      </aside>
 
-        <div className="col-span-2 space-y-6">
-          <div className="bg-white bg-opacity-80 rounded-lg shadow p-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-black">Clientes asignados a Atención</h2>
-              <div className="flex gap-2">
-                <button className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-700 text-black rounded" onClick={() => setShowEnviarPostventa(true)}>Enviar a Postventa</button>
-              </div>
-            </div>
-            <ul className="mt-4">
-              {clients.map((c) => (
-                <li key={c.id} className="flex justify-between items-center border-b py-2">
-                  <div>
-                    <div className="font-semibold">{c.first_name} {c.last_name}</div>
-                    <div className="text-sm text-gray-700">{c.email}</div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      className="px-2 py-1 bg-gradient-to-r from-yellow-400 to-yellow-700 text-black rounded"
-                      onClick={async () => {
-                        try {
-                          const api = await import('../services/api')
-                          const users = await api.userService.getUsers()
-                          const post = (users.users || users).find(u => u.email === 'postventa@crm.com' || u.email === 'postventa')
-                          if (!post) return alert('Usuario Postventa no encontrado')
-                          await api.clientService.updateClient(c.id, { usuario_asignado_id: post.id })
-                          try {
-                            const currentUser = JSON.parse(localStorage.getItem('user') || 'null')
-                            await api.default.post('/client-transfers', {
-                              clientId: c.id,
-                              fromUserId: currentUser?.id || null,
-                              toUserId: post.id,
-                              reason: 'Enviado a Postventa desde Atención'
-                            })
-                          } catch (err) { console.warn('Registro de transferencia falló', err) }
-                          alert('Enviado a Postventa')
-                          setClients(prev => prev.filter(x => x.id !== c.id))
-                        } catch (e) { console.error(e); alert('Error: ' + (e.message || e)) }
-                      }}
-                    >
-                      Enviar a Postventa
-                    </button>
-                    <button className="px-2 py-1 border rounded" onClick={() => alert('Crear reserva (no implementado)')}>Crear Reserva</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
+      {/* Contenido principal */}
+      <main className="flex-1 p-6 overflow-auto">
+        <div className="max-w-5xl mx-auto flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold text-black">
+            {MODULES.find(m => m.id === activeModule)?.name || 'Panel de Atención'}
+          </h1>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
           </div>
+        </div>
 
-          <div className="bg-white bg-opacity-80 rounded-lg shadow p-4">
-            <h2 className="text-xl font-bold text-black">Historial / Postventa</h2>
+        {/* Módulo: Bandeja de Mensajes */}
+        {activeModule === 'bandeja' && (
+          <div className="bg-white bg-opacity-80 rounded-lg shadow p-6">
+            <button
+              className="w-full max-w-xs px-4 py-3 bg-gradient-to-r from-yellow-400 to-yellow-700 text-black rounded font-semibold hover:opacity-90"
+              onClick={() => navigate('/bandeja-mensajes')}
+            >
+              📧 Ir a Bandeja de Mensajes
+            </button>
+          </div>
+        )}
+
+        {/* Módulo: Requerimientos */}
+        {activeModule === 'requerimientos' && (
+          <div className="bg-white bg-opacity-80 rounded-lg shadow p-6">
+            <button
+              className="mb-4 px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-700 text-black rounded font-semibold"
+              onClick={() => setShowRequerimiento(true)}
+            >
+              Nuevo Requerimiento
+            </button>
+            <h3 className="font-semibold text-black mb-2">Requerimientos</h3>
             <ul>
-              {postventa.map((p, i) => (
-                <li key={i} className="border-b py-1">{p.cliente} - {p.motivo}</li>
-              ))}
+              {requerimientos.length === 0 ? (
+                <li className="text-gray-600">No hay requerimientos registrados</li>
+              ) : (
+                requerimientos.map((r, i) => (
+                  <li key={i} className="border-b py-2 text-black">{r.cliente} - {r.detalle}</li>
+                ))
+              )}
             </ul>
           </div>
+        )}
 
-          <div className="bg-white bg-opacity-80 rounded-lg shadow p-4">
-            <h2 className="text-xl font-bold text-black">📅 Reservas Pendientes</h2>
+        {/* Módulo: Clientes asignados a Atención */}
+        {activeModule === 'asignados' && (
+          <div className="bg-white bg-opacity-80 rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-black">Clientes asignados a Atención</h3>
+              <button
+                className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-700 text-black rounded"
+                onClick={() => setShowEnviarPostventa(true)}
+              >
+                Enviar a Postventa
+              </button>
+            </div>
+            <ul className="space-y-2">
+              {clients.length === 0 ? (
+                <li className="text-gray-600">No hay clientes asignados</li>
+              ) : (
+                clients.map((c) => (
+                  <li key={c.id} className="flex justify-between items-center border-b py-2">
+                    <div>
+                      <div className="font-semibold text-black">{c.first_name} {c.last_name}</div>
+                      <div className="text-sm text-gray-700">{c.email}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        className="px-2 py-1 bg-gradient-to-r from-yellow-400 to-yellow-700 text-black rounded text-sm"
+                        onClick={async () => {
+                          try {
+                            const api = await import('../services/api')
+                            const users = await api.userService.getUsers()
+                            const post = (users.users || users).find(u => u.email === 'postventa@crm.com' || u.email === 'postventa')
+                            if (!post) return alert('Usuario Postventa no encontrado')
+                            await api.clientService.updateClient(c.id, { usuario_asignado_id: post.id })
+                            try {
+                              const currentUser = JSON.parse(localStorage.getItem('user') || 'null')
+                              await api.default.post('/client-transfers', {
+                                clientId: c.id,
+                                fromUserId: currentUser?.id || null,
+                                toUserId: post.id,
+                                reason: 'Enviado a Postventa desde Atención'
+                              })
+                            } catch (err) { console.warn('Registro de transferencia falló', err) }
+                            alert('Enviado a Postventa')
+                            setClients(prev => prev.filter(x => x.id !== c.id))
+                          } catch (e) { console.error(e); alert('Error: ' + (e.message || e)) }
+                        }}
+                      >
+                        Enviar a Postventa
+                      </button>
+                      <button className="px-2 py-1 border rounded text-sm" onClick={() => alert('Crear reserva (no implementado)')}>Crear Reserva</button>
+                    </div>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
+        )}
+
+        {/* Módulo: Clientes (todos) + Dar bienvenida */}
+        {activeModule === 'clientes' && (
+          <div className="bg-white bg-opacity-80 rounded-lg shadow p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-black">Todos los clientes</h3>
+              <button
+                className="px-4 py-2 bg-green-600 text-white rounded font-medium hover:bg-green-700"
+                onClick={openWelcome}
+              >
+                Dar bienvenida
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">Listado de todos los clientes creados. Usa &quot;Dar bienvenida&quot; para enviar mensaje por WhatsApp.</p>
+            <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-100 sticky top-0">
+                  <tr>
+                    <th className="p-2 font-semibold text-black">Nombre</th>
+                    <th className="p-2 font-semibold text-black">Email</th>
+                    <th className="p-2 font-semibold text-black">Contrato</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allClients.length === 0 ? (
+                    <tr><td colSpan={3} className="p-4 text-gray-600">No hay clientes registrados</td></tr>
+                  ) : (
+                    allClients.map((c) => (
+                      <tr key={c.id} className="border-b hover:bg-gray-50">
+                        <td className="p-2 font-medium">{c.first_name} {c.last_name}</td>
+                        <td className="p-2 text-gray-700">{c.email}</td>
+                        <td className="p-2 text-gray-700">{c.contract_number || '—'}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Módulo: Reservas Pendientes */}
+        {activeModule === 'reservas' && (
+          <div className="bg-white bg-opacity-80 rounded-lg shadow p-6">
+            <h3 className="text-xl font-bold text-black mb-4">📅 Reservas Pendientes</h3>
             {loadingReservas ? (
               <p className="text-gray-600">Cargando reservas...</p>
             ) : reservasPendientes.length === 0 ? (
               <p className="text-gray-600">No hay reservas pendientes</p>
             ) : (
-              <ul className="mt-4 space-y-3">
+              <ul className="space-y-3">
                 {reservasPendientes.map((res) => (
                   <li key={res.id} className="border-l-4 border-yellow-500 bg-yellow-50 p-3 rounded">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <p className="font-semibold">Reserva #{res.numero_reserva}</p>
-                        <p className="text-sm text-gray-700">
-                          Cliente ID: {res.cliente_id || res.usuario_id}
-                        </p>
+                        <p className="text-sm text-gray-700">Cliente ID: {res.cliente_id || res.usuario_id}</p>
                         <p className="text-sm text-gray-700">
                           📅 {res.fecha_entrada ? new Date(res.fecha_entrada).toLocaleDateString('es-ES') : 'N/A'} - {res.fecha_salida ? new Date(res.fecha_salida).toLocaleDateString('es-ES') : 'N/A'}
                         </p>
-                        <p className="text-sm text-gray-700">
-                          👥 {res.personas} {res.personas === 1 ? 'persona' : 'personas'} | {res.noches} {res.noches === 1 ? 'noche' : 'noches'}
-                        </p>
-                        {res.tipo_habitacion && (
-                          <p className="text-sm text-gray-700">
-                            🏨 Tipo: {res.tipo_habitacion}
-                          </p>
-                        )}
-                        {res.observaciones && (
-                          <p className="text-sm text-gray-700 mt-1">
-                            📝 {res.observaciones}
-                          </p>
-                        )}
+                        <p className="text-sm text-gray-700">👥 {res.personas} {res.personas === 1 ? 'persona' : 'personas'} | {res.noches} {res.noches === 1 ? 'noche' : 'noches'}</p>
+                        {res.tipo_habitacion && <p className="text-sm text-gray-700">🏨 Tipo: {res.tipo_habitacion}</p>}
+                        {res.observaciones && <p className="text-sm text-gray-700 mt-1">📝 {res.observaciones}</p>}
                       </div>
                       <button
                         className="ml-2 px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm"
@@ -203,10 +286,26 @@ export default function DashboardAtencionCliente() {
               </ul>
             )}
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Modal Dar bienvenida: elegir cliente, plantilla, teléfono (auto), Enviar → WhatsApp */}
+        {/* Módulo: Historial / Postventa */}
+        {activeModule === 'historial' && (
+          <div className="bg-white bg-opacity-80 rounded-lg shadow p-6">
+            <h3 className="text-xl font-bold text-black mb-4">Historial / Postventa</h3>
+            <ul>
+              {postventa.length === 0 ? (
+                <li className="text-gray-600">No hay registros</li>
+              ) : (
+                postventa.map((p, i) => (
+                  <li key={i} className="border-b py-2 text-black">{p.cliente} - {p.motivo}</li>
+                ))
+              )}
+            </ul>
+          </div>
+        )}
+      </main>
+
+      {/* Modal Dar bienvenida */}
       {showWelcomeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full shadow-xl">

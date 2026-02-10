@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import Calendar3DModal from './Calendar3DModal';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+const DEPT_QUITO_CUENCA = [
+  { id: 'quito', nombre: 'Departamento en Quito', imagen: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=60' },
+  { id: 'cuenca', nombre: 'Departamento en Cuenca', imagen: 'https://images.unsplash.com/photo-1505904267569-6b6f1d0a7f11?auto=format&fit=crop&w=1200&q=60' }
+];
 
 export default function LocacionesDepartamentosAdmin() {
   const [locaciones, setLocaciones] = useState([]);
@@ -10,6 +16,7 @@ export default function LocacionesDepartamentosAdmin() {
   const [departamentoForm, setDepartamentoForm] = useState({ nombre: '', locacionId: '' });
   const [editLocacionId, setEditLocacionId] = useState(null);
   const [editDepartamentoId, setEditDepartamentoId] = useState(null);
+  const [calendarDept, setCalendarDept] = useState(null);
 
   useEffect(() => {
     fetchLocaciones();
@@ -92,6 +99,40 @@ export default function LocacionesDepartamentosAdmin() {
 
   return (
     <div className="p-4 max-w-4xl mx-auto">
+      <h2 className="text-2xl font-bold mb-4">Lugares / Departamentos</h2>
+
+      {/* Departamento en Quito y Cuenca con foto y Ver calendario */}
+      <div className="mb-10">
+        <h3 className="text-lg font-semibold mb-3">Departamentos (Quito y Cuenca)</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {DEPT_QUITO_CUENCA.map((d) => (
+            <div key={d.id} className="rounded-lg overflow-hidden border border-gray-200 shadow">
+              <div className="h-48 bg-gray-100">
+                <img src={d.imagen} alt={d.nombre} className="w-full h-full object-cover" />
+              </div>
+              <div className="p-4">
+                <h4 className="font-semibold text-gray-900">{d.nombre}</h4>
+                <button
+                  type="button"
+                  className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  onClick={() => setCalendarDept(d.id)}
+                >
+                  Ver calendario
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        {calendarDept && (
+          <Calendar3DModal
+            deptId={calendarDept}
+            deptName={DEPT_QUITO_CUENCA.find((x) => x.id === calendarDept)?.nombre}
+            onClose={() => setCalendarDept(null)}
+            allowedEmails={['cliente@crm.com', 'clienteib1@crm.com', 'clienteib2@crm.com']}
+          />
+        )}
+      </div>
+
       <h2 className="text-2xl font-bold mb-4">Gestión de Locaciones</h2>
       <form onSubmit={handleLocacionSubmit} className="mb-6 flex gap-2 flex-wrap">
         <input

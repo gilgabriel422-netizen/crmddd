@@ -23,10 +23,10 @@ async function crearClienteConUsuario(clienteData, rolCliente = 'blue') {
         fecha_registro, status, total_nights, remaining_nights, anos, anos_indefinido,
         international_bonus, total_amount, iva, neto, payment_status, categoria_cliente,
         pago_mixto, cantidad_tarjetas, datafast, tipo_tarjeta, forma_pago, tiempo_meses,
-        empresa, telefono, direccion, ciudad, pais, notas
+        empresa, telefono, direccion, ciudad, pais, notas, sala
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18,
-        $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30
+        $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31
       ) RETURNING id, first_name, last_name, email`,
       [
         clienteData.first_name || '',
@@ -58,7 +58,8 @@ async function crearClienteConUsuario(clienteData, rolCliente = 'blue') {
         clienteData.direccion || '',
         clienteData.ciudad || '',
         clienteData.pais || '',
-        clienteData.notas || ''
+        clienteData.notas || '',
+        (clienteData.sala && (clienteData.sala === 'Sala 2' ? 'Sala 2' : 'Sala 1')) || 'Sala 1'
       ]
     );
 

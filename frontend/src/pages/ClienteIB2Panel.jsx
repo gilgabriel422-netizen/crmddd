@@ -1,11 +1,13 @@
 import React from 'react'
-import { FileText, Gift, HelpCircle, Menu, X, LogOut, BookOpen, Award, Inbox, MessageCircle } from 'lucide-react'
+import { FileText, Gift, HelpCircle, Menu, X, LogOut, BookOpen, Award, Inbox, MessageCircle, Package, MapPin } from 'lucide-react'
 import WhatsAppFloat from '../components/WhatsAppFloat'
 import { useAuth } from '../contexts/AuthContext'
 import NotificationBell from '../components/NotificationBell'
 import VisorPlantillaContrato from '../components/VisorPlantillaContrato'
 import BeneficiosCliente from '../components/BeneficiosCliente'
 import SolicitarReserva from '../components/SolicitarReserva'
+import ReservasPaquetesCliente from '../components/ReservasPaquetesCliente'
+import NochesNacionales from '../components/NochesNacionales'
 
 const ClienteIB2Panel = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
@@ -32,14 +34,22 @@ const ClienteIB2Panel = () => {
     })
   }
 
-  // Calcular puntos del cliente (30% del total_amount)
-  const calcularPuntos = () => {
-    if (!cliente || !cliente.total_amount) return 0
-    return Math.floor(parseFloat(cliente.total_amount) * 0.30)
-  }
+  const [puntosIB, setPuntosIB] = React.useState(0)
+  React.useEffect(() => {
+    const email = user?.email || cliente?.email
+    if (!email) return
+    const load = async () => {
+      try {
+        const pointsService = (await import('../services/pointsService')).default
+        const pts = await pointsService.getPointsForUser(email)
+        setPuntosIB(pts ?? 0)
+      } catch (e) { setPuntosIB(0) }
+    }
+    load()
+  }, [user?.email, cliente?.email])
 
   const formatPuntos = (puntos) => {
-    return puntos.toLocaleString('es-ES')
+    return (puntos ?? 0).toLocaleString('es-ES')
   }
 
   // useEffect para cargar el cliente basado en usuario_asignado_id
@@ -171,7 +181,9 @@ const ClienteIB2Panel = () => {
   const sections = [
     { id: 'contrato', name: 'Contrato', icon: FileText },
     { id: 'beneficios', name: 'Beneficios', icon: Gift },
-    { id: 'puntos-compensacion', name: 'Puntos / Compensación', icon: Award },
+    { id: 'puntos-ib', name: 'Puntos IB', icon: Award },
+    { id: 'reservas', name: 'Reservas', icon: Package },
+    { id: 'noches-nacionales', name: 'Noches nacionales', icon: MapPin },
     { id: 'solicitar-reserva', name: 'Solicitar Reserva', icon: BookOpen },
     { id: 'enviar-atencion', name: 'Enviar a Atención', icon: MessageCircle },
     { id: 'bandeja-respuestas', name: 'Bandeja de Respuestas', icon: Inbox },
@@ -223,53 +235,49 @@ const ClienteIB2Panel = () => {
         )
       case 'beneficios':
         return (
-          <BeneficiosCliente clienteId={cliente?.id} />
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Beneficios</h2>
+            {(cliente?.anos != null || cliente?.remaining_nights != null || cliente?.total_nights != null) && (
+              <div className="bg-white p-4 rounded-lg shadow-md border border-gray-200">
+                <h3 className="font-semibold text-gray-800 mb-2">Beneficios de tu contrato (registrados al darte de alta)</h3>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  {cliente?.anos != null && <span><strong>Años de contrato:</strong> {cliente.anos === 0 ? 'Indefinido' : cliente.anos}</span>}
+                  {cliente?.total_nights != null && <span><strong>Noches totales:</strong> {cliente.total_nights}</span>}
+                  {cliente?.remaining_nights != null && <span><strong>Noches disponibles:</strong> {cliente.remaining_nights}</span>}
+                </div>
+              </div>
+            )}
+            <BeneficiosCliente clienteId={cliente?.id} />
+          </div>
         )
-      case 'puntos-compensacion':
+      case 'puntos-ib':
         return (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Puntos / Compensación</h2>
+            <h2 className="text-2xl font-bold">Puntos IB</h2>
             <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 p-6 rounded-lg text-white">
-                  <h3 className="text-lg font-semibold mb-2">Tus Puntos Actuales</h3>
-                  <p className="text-4xl font-bold">{formatPuntos(calcularPuntos())}</p>
-                  <p className="text-sm mt-2">Puntos disponibles para canjear</p>
-                </div>
-                <div className="bg-gradient-to-br from-blue-400 to-blue-600 p-6 rounded-lg text-white">
-                  <h3 className="text-lg font-semibold mb-2">Sistema de Acumulación</h3>
-                  <p className="text-3xl font-bold">30%</p>
-                  <p className="text-sm mt-2">Del valor de cada compra se convierte en puntos</p>
-                </div>
+              <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 p-6 rounded-lg text-white">
+                <h3 className="text-lg font-semibold mb-2">Tus Puntos IB</h3>
+                <p className="text-4xl font-bold">{formatPuntos(puntosIB)}</p>
+                <p className="text-sm mt-2">Puntos disponibles (asignados al crear tu cliente por admin/contratos)</p>
               </div>
-              
               <div className="mt-6 bg-gray-800 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-white mb-3">¿Cómo funcionan los puntos?</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">¿Cómo funcionan los Puntos IB?</h3>
                 <ul className="space-y-2 text-sm text-gray-200">
-                  <li className="flex items-start">
-                    <span className="text-green-400 mr-2">✓</span>
-                    <span>Por cada compra, acumulas el 30% del valor en puntos</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-400 mr-2">✓</span>
-                    <span>Canjea tus puntos por descuentos en futuras reservas</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-400 mr-2">✓</span>
-                    <span>Accede a premios y beneficios exclusivos</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-400 mr-2">✓</span>
-                    <span>Tus puntos no tienen fecha de vencimiento</span>
-                  </li>
+                  <li className="flex items-start"><span className="text-green-400 mr-2">✓</span><span>Se asignan según el valor de tu venta al darte de alta</span></li>
+                  <li className="flex items-start"><span className="text-green-400 mr-2">✓</span><span>Canjéalos por descuentos en reservas (ej. Noches nacionales)</span></li>
+                  <li className="flex items-start"><span className="text-green-400 mr-2">✓</span><span>1 USD = 1 Punto IB en uso para pagos</span></li>
                 </ul>
               </div>
-
-              <div className="mt-6 bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">Historial de Puntos</h3>
-                <p className="text-sm text-gray-600">No hay movimientos registrados aún</p>
-              </div>
             </div>
+          </div>
+        )
+      case 'reservas':
+        return <ReservasPaquetesCliente />
+      case 'noches-nacionales':
+        return (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Noches nacionales</h2>
+            <NochesNacionales />
           </div>
         )
       case 'solicitar-reserva':
@@ -414,9 +422,9 @@ const ClienteIB2Panel = () => {
         </nav>
       </aside>
 
-      {/* Desktop header */}
+      {/* Paleta clienteib2@crm.com: negro oscuro con letras blancas - header */}
       <div className="hidden md:flex flex-col flex-1">
-        <div className="bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 text-white p-4 flex justify-end items-center border-b border-blue-600">
+        <div className="bg-black/80 text-white p-4 flex justify-end items-center border-b border-gray-600">
           <NotificationBell />
         </div>
 

@@ -110,8 +110,20 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
     cantidad_cuotas: 1,
     cuotas_asumidas: 0,
     valor_cuota: 0,
-    total_pagare: 0
+    total_pagare: 0,
+    puntos_ib: 0,
+    sala: 'Sala 1'
   })
+
+  // Calculadora de Puntos IB según monto de venta (500-1000→50, 1001-3000→100, 3001-5000→200, 5001+→300)
+  const computePoints = (amount) => {
+    const total = Number(amount) || 0
+    if (total >= 500 && total <= 1000) return 50
+    if (total >= 1001 && total <= 3000) return 100
+    if (total >= 3001 && total <= 5000) return 200
+    if (total >= 5001) return 300
+    return 0
+  }
   
   // Estados para reservas
   const [showBookingForm, setShowBookingForm] = useState(false)
@@ -1808,7 +1820,10 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
       correo_electronico: '',
       linner: '',
       closer: '',
-      observaciones: ''
+      observaciones: '',
+      version: 'cliente',
+      puntos_ib: 0,
+      sala: 'Sala 1'
     })
   }
 
@@ -1824,6 +1839,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
       updatedData.total_venta = totalVenta
       updatedData.iva = neto // El IVA es lo que antes era NETO
       updatedData.neto = iva // El NETO es lo que antes era IVA
+      updatedData.puntos_ib = computePoints(totalVenta)
     }
     
     // Manejar cambio en cantidad de tarjetas
@@ -1848,6 +1864,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
         updatedData.total_venta = totalTarjetas
         updatedData.iva = iva
         updatedData.neto = neto
+        updatedData.puntos_ib = computePoints(totalTarjetas)
       }
     }
 
@@ -1882,6 +1899,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
       updatedData.total_venta = totalTarjetas
       updatedData.iva = iva
       updatedData.neto = neto
+      updatedData.puntos_ib = computePoints(totalTarjetas)
     }
     
     // Si se marca "años indefinido", limpiar el campo de años
@@ -1911,6 +1929,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
       updatedData.total_venta = totalTarjetas
       updatedData.iva = iva
       updatedData.neto = neto
+      updatedData.puntos_ib = computePoints(totalTarjetas)
     }
     
     setNewClientData(updatedData)
@@ -1965,7 +1984,12 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
         payment_status: 'sin_pago',
         international_bonus: newClientData.bono_internacional,
         total_nights: newClientData.noches,
-        remaining_nights: newClientData.noches
+        remaining_nights: newClientData.noches,
+        anos: newClientData.anos ?? 0,
+        anos_indefinido: newClientData.anos_indefinido ?? false,
+        sala: newClientData.sala ?? 'Sala 1',
+        puntos_ib: newClientData.puntos_ib ?? 0,
+        categoria_cliente: newClientData.version === 'clienteIB1' ? 'gold' : newClientData.version === 'clienteIB2' ? 'black' : 'blue'
       }
 
       // Si estamos en modo offline, persistir localmente en localStorage
@@ -2021,11 +2045,23 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
         const response = await clientService.createClient(clientData)
         console.log('Cliente creado:', response)
 
+        // Registrar Puntos IB del cliente para que aparezcan en los dashboards cliente@/clienteib1@/clienteib2@
+        const loginEmail = response?.usuario?.email || response?.credenciales?.email || clientData.email
+        const puntosToSet = newClientData.puntos_ib ?? 0
+        if (loginEmail && (puntosToSet > 0 || response?.usuario?.id)) {
+          try {
+            const pointsService = (await import('../services/pointsService')).default
+            await pointsService.setPointsForUser(loginEmail, puntosToSet)
+          } catch (e) {
+            console.warn('No se pudo registrar Puntos IB (se creó el cliente):', e)
+          }
+        }
+
         // Registrar acción de auditoría
         await logAuditAction(
           'CREATE',
           'CLIENT',
-          response.id,
+          response?.cliente?.id ?? response?.id,
           null,
           clientData,
           `Cliente creado: ${clientData.first_name} ${clientData.last_name} - Contrato: ${contratoCompleto}`
@@ -7984,30 +8020,30 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
             </h3>
             
             <form className="space-y-4">
-              {/* Selector de versión (GOLD / BLUE / BLACK) - encima de la fecha */}
+              {/* Selector de versión (Blue / Gold / Black) - opción elegida resaltada */}
               <div className="flex items-center gap-3 mb-2">
                 <label className="text-sm font-medium text-gray-700">Versión:</label>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => handleNewClientChange('version', 'cliente')}
-                    className={`px-3 py-1 rounded-md text-sm font-semibold ${newClientData.version === 'cliente' ? 'bg-yellow-400 text-white' : 'bg-gray-100 text-gray-700'}`}
+                    className={`px-3 py-1 rounded-md text-sm font-semibold ${newClientData.version === 'cliente' ? 'bg-blue-600 text-white ring-2 ring-blue-800' : 'bg-gray-100 text-gray-700'}`}
                   >
-                    GOLD
+                    Blue
                   </button>
                   <button
                     type="button"
                     onClick={() => handleNewClientChange('version', 'clienteIB1')}
-                    className={`px-3 py-1 rounded-md text-sm font-semibold ${newClientData.version === 'clienteIB1' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                    className={`px-3 py-1 rounded-md text-sm font-semibold ${newClientData.version === 'clienteIB1' ? 'bg-amber-600 text-white ring-2 ring-amber-800' : 'bg-gray-100 text-gray-700'}`}
                   >
-                    BLUE
+                    Gold
                   </button>
                   <button
                     type="button"
                     onClick={() => handleNewClientChange('version', 'clienteIB2')}
-                    className={`px-3 py-1 rounded-md text-sm font-semibold ${newClientData.version === 'clienteIB2' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700'}`}
+                    className={`px-3 py-1 rounded-md text-sm font-semibold ${newClientData.version === 'clienteIB2' ? 'bg-gray-900 text-white ring-2 ring-gray-700' : 'bg-gray-100 text-gray-700'}`}
                   >
-                    BLACK
+                    Black
                   </button>
                 </div>
               </div>
@@ -8281,6 +8317,32 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   </div>
                 </div>
               )}
+
+              {/* Puntos IB (calculado) y Sala - debajo de Total de la venta */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">PUNTOS IB</label>
+                  <input
+                    type="number"
+                    value={newClientData.puntos_ib ?? 0}
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Calculado según total de venta (500-1000→50, 1001-3000→100, 3001-5000→200, 5001+→300)</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">SALA</label>
+                  <select
+                    value={newClientData.sala ?? 'Sala 1'}
+                    onChange={(e) => handleNewClientChange('sala', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
+                  >
+                    <option value="Sala 1">Sala 1</option>
+                    <option value="Sala 2">Sala 2</option>
+                  </select>
+                </div>
+                <div />
+              </div>
 
               {/* Quinta fila - Forma de pago y tiempo */}
               {newClientData.pago_mixto === 'No' && (

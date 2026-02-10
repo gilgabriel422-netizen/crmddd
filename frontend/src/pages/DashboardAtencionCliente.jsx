@@ -13,8 +13,13 @@ export default function DashboardAtencionCliente() {
   const [showEnviarPostventa, setShowEnviarPostventa] = useState(false)
   const [selectedCliente, setSelectedCliente] = useState(null)
   const [clients, setClients] = useState([])
+  const [allClients, setAllClients] = useState([])
   const [reservasPendientes, setReservasPendientes] = useState([])
   const [loadingReservas, setLoadingReservas] = useState(false)
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
+  const [welcomeTemplate, setWelcomeTemplate] = useState('')
+  const [welcomePhone, setWelcomePhone] = useState('')
+  const [selectedWelcomeClientId, setSelectedWelcomeClientId] = useState('')
 
   useEffect(() => {
     if (!authed) return
@@ -32,8 +37,7 @@ export default function DashboardAtencionCliente() {
             : (c.usuario_asignado_nombre || '').toLowerCase().includes('atenci')
         )
         setClients(filtered)
-        
-        // Cargar reservas pendientes
+        setAllClients(resp.clients || [])
         cargarReservasPendientes()
       } catch (e) {
         console.error(e)
@@ -67,13 +71,9 @@ export default function DashboardAtencionCliente() {
       <div className="max-w-6xl mx-auto flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-black">Panel de Atención</h1>
         <div className="flex items-center gap-4">
+          <button className="px-4 py-2 bg-green-600 text-white rounded font-medium hover:bg-green-700" onClick={() => { setSelectedWelcomeClientId(''); setWelcomeTemplate(''); setWelcomePhone(''); setShowWelcomeModal(true); }}>Dar bienvenida</button>
           <NotificationBell />
-          <button
-            className="px-4 py-2 border rounded text-red-700 hover:bg-red-50"
-            onClick={logout}
-          >
-            Salir
-          </button>
+          <button className="px-4 py-2 border rounded text-red-700 hover:bg-red-50" onClick={logout}>Salir</button>
         </div>
       </div>
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -205,6 +205,61 @@ export default function DashboardAtencionCliente() {
           </div>
         </div>
       </div>
+
+      {/* Modal Dar bienvenida: elegir cliente, plantilla, teléfono (auto), Enviar → WhatsApp */}
+      {showWelcomeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full shadow-xl">
+            <h3 className="text-lg font-semibold mb-4">Enviar bienvenida por WhatsApp</h3>
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Elegir cliente</label>
+              <select
+                className="w-full border p-2 rounded"
+                value={selectedWelcomeClientId}
+                onChange={(e) => {
+                  const id = e.target.value || ''
+                  setSelectedWelcomeClientId(id)
+                  const client = (allClients || []).find((x) => String(x.id) === String(id))
+                  if (client) {
+                    setWelcomePhone((client.phone || client.telefono || client.telefono_movil || '').toString().replace(/\D/g, ''))
+                    if (!welcomeTemplate.trim()) setWelcomeTemplate(`¡Hola ${client.first_name} ${client.last_name}!\n\nBienvenido a Innovation Business. Tu contrato ${client.contract_number || ''} ha sido registrado correctamente.\n\nSi necesitas asistencia, responde a este mensaje.`)
+                  }
+                }}
+              >
+                <option value="">-- Seleccionar cliente --</option>
+                {(allClients || []).map((c) => (
+                  <option key={c.id} value={c.id}>{c.first_name} {c.last_name} — {c.email}</option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Plantilla de bienvenida</label>
+              <textarea value={welcomeTemplate} onChange={(e) => setWelcomeTemplate(e.target.value)} className="w-full h-36 border p-2 rounded" placeholder="Escribe el mensaje de bienvenida..." />
+            </div>
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Número de teléfono (se completa al elegir cliente)</label>
+              <input value={welcomePhone} onChange={(e) => setWelcomePhone(e.target.value)} placeholder="Ej: 593987654321" className="w-full border p-2 rounded" />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button type="button" className="px-3 py-1 border rounded" onClick={() => setShowWelcomeModal(false)}>Cancelar</button>
+              <button
+                type="button"
+                className="px-3 py-1 bg-green-600 text-white rounded"
+                onClick={() => {
+                  const digits = (welcomePhone || '').toString().replace(/\D/g, '')
+                  if (!digits) return alert('Ingresa un número de teléfono válido')
+                  const message = welcomeTemplate || '¡Hola! Bienvenido a Innovation Business.'
+                  const url = `https://wa.me/${digits}?text=${encodeURIComponent(message)}`
+                  window.open(url, '_blank')
+                  setShowWelcomeModal(false)
+                }}
+              >
+                Enviar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

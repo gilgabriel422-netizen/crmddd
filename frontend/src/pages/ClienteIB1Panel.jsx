@@ -1,11 +1,13 @@
 import React from 'react'
-import { FileText, Gift, HelpCircle, Menu, X, LogOut, BookOpen, Award, Inbox, MessageCircle } from 'lucide-react'
+import { FileText, Gift, HelpCircle, Menu, X, LogOut, BookOpen, Award, Inbox, MessageCircle, Package, MapPin } from 'lucide-react'
 import WhatsAppFloat from '../components/WhatsAppFloat'
 import { useAuth } from '../contexts/AuthContext'
 import NotificationBell from '../components/NotificationBell'
 import VisorPlantillaContrato from '../components/VisorPlantillaContrato'
 import BeneficiosCliente from '../components/BeneficiosCliente'
 import SolicitarReserva from '../components/SolicitarReserva'
+import ReservasPaquetesCliente from '../components/ReservasPaquetesCliente'
+import NochesNacionales from '../components/NochesNacionales'
 
 const ClienteIB1Panel = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
@@ -32,14 +34,22 @@ const ClienteIB1Panel = () => {
     })
   }
 
-  // Calcular puntos del cliente (30% del total_amount)
-  const calcularPuntos = () => {
-    if (!cliente || !cliente.total_amount) return 0
-    return Math.floor(parseFloat(cliente.total_amount) * 0.30)
-  }
+  const [puntosIB, setPuntosIB] = React.useState(0)
+  React.useEffect(() => {
+    const email = user?.email || cliente?.email
+    if (!email) return
+    const load = async () => {
+      try {
+        const pointsService = (await import('../services/pointsService')).default
+        const pts = await pointsService.getPointsForUser(email)
+        setPuntosIB(pts ?? 0)
+      } catch (e) { setPuntosIB(0) }
+    }
+    load()
+  }, [user?.email, cliente?.email])
 
   const formatPuntos = (puntos) => {
-    return puntos.toLocaleString('es-ES')
+    return (puntos ?? 0).toLocaleString('es-ES')
   }
 
   // useEffect para cargar el cliente basado en usuario_asignado_id
@@ -171,7 +181,9 @@ const ClienteIB1Panel = () => {
   const sections = [
     { id: 'contrato', name: 'Contrato', icon: FileText },
     { id: 'beneficios', name: 'Beneficios', icon: Gift },
-    { id: 'puntos-compensacion', name: 'Puntos / Compensación', icon: Award },
+    { id: 'puntos-ib', name: 'Puntos IB', icon: Award },
+    { id: 'reservas', name: 'Reservas', icon: Package },
+    { id: 'noches-nacionales', name: 'Noches nacionales', icon: MapPin },
     { id: 'solicitar-reserva', name: 'Solicitar Reserva', icon: BookOpen },
     { id: 'enviar-atencion', name: 'Enviar a Atención', icon: MessageCircle },
     { id: 'bandeja-respuestas', name: 'Bandeja de Respuestas', icon: Inbox },
@@ -223,53 +235,49 @@ const ClienteIB1Panel = () => {
         )
       case 'beneficios':
         return (
-          <BeneficiosCliente clienteId={cliente?.id} />
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Beneficios</h2>
+            {(cliente?.anos != null || cliente?.remaining_nights != null || cliente?.total_nights != null) && (
+              <div className="bg-white p-4 rounded-lg shadow-md border border-gray-200">
+                <h3 className="font-semibold text-gray-800 mb-2">Beneficios de tu contrato (registrados al darte de alta)</h3>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  {cliente?.anos != null && <span><strong>Años de contrato:</strong> {cliente.anos === 0 ? 'Indefinido' : cliente.anos}</span>}
+                  {cliente?.total_nights != null && <span><strong>Noches totales:</strong> {cliente.total_nights}</span>}
+                  {cliente?.remaining_nights != null && <span><strong>Noches disponibles:</strong> {cliente.remaining_nights}</span>}
+                </div>
+              </div>
+            )}
+            <BeneficiosCliente clienteId={cliente?.id} />
+          </div>
         )
-      case 'puntos-compensacion':
+      case 'puntos-ib':
         return (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Puntos / Compensación</h2>
+            <h2 className="text-2xl font-bold">Puntos IB</h2>
             <div className="bg-white p-6 rounded-lg shadow-md">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 p-6 rounded-lg text-white">
-                  <h3 className="text-lg font-semibold mb-2">Tus Puntos Actuales</h3>
-                  <p className="text-4xl font-bold">{formatPuntos(calcularPuntos())}</p>
-                  <p className="text-sm mt-2">Puntos disponibles para canjear</p>
-                </div>
-                <div className="bg-gradient-to-br from-blue-400 to-blue-600 p-6 rounded-lg text-white">
-                  <h3 className="text-lg font-semibold mb-2">Sistema de Acumulación</h3>
-                  <p className="text-3xl font-bold">30%</p>
-                  <p className="text-sm mt-2">Del valor de cada compra se convierte en puntos</p>
-                </div>
+              <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 p-6 rounded-lg text-white">
+                <h3 className="text-lg font-semibold mb-2">Tus Puntos IB</h3>
+                <p className="text-4xl font-bold">{formatPuntos(puntosIB)}</p>
+                <p className="text-sm mt-2">Puntos disponibles (asignados al crear tu cliente por admin/contratos)</p>
               </div>
-              
               <div className="mt-6 bg-gray-800 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-white mb-3">¿Cómo funcionan los puntos?</h3>
+                <h3 className="text-lg font-semibold text-white mb-3">¿Cómo funcionan los Puntos IB?</h3>
                 <ul className="space-y-2 text-sm text-gray-200">
-                  <li className="flex items-start">
-                    <span className="text-green-400 mr-2">✓</span>
-                    <span>Por cada compra, acumulas el 30% del valor en puntos</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-400 mr-2">✓</span>
-                    <span>Canjea tus puntos por descuentos en futuras reservas</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-400 mr-2">✓</span>
-                    <span>Accede a premios y beneficios exclusivos</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-400 mr-2">✓</span>
-                    <span>Tus puntos no tienen fecha de vencimiento</span>
-                  </li>
+                  <li className="flex items-start"><span className="text-green-400 mr-2">✓</span><span>Se asignan según el valor de tu venta al darte de alta</span></li>
+                  <li className="flex items-start"><span className="text-green-400 mr-2">✓</span><span>Canjéalos por descuentos en reservas (ej. Noches nacionales)</span></li>
+                  <li className="flex items-start"><span className="text-green-400 mr-2">✓</span><span>1 USD = 1 Punto IB en uso para pagos</span></li>
                 </ul>
               </div>
-
-              <div className="mt-6 bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">Historial de Puntos</h3>
-                <p className="text-sm text-gray-600">No hay movimientos registrados aún</p>
-              </div>
             </div>
+          </div>
+        )
+      case 'reservas':
+        return <ReservasPaquetesCliente />
+      case 'noches-nacionales':
+        return (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Noches nacionales</h2>
+            <NochesNacionales />
           </div>
         )
       case 'solicitar-reserva':
@@ -377,14 +385,15 @@ const ClienteIB1Panel = () => {
   // Version selector: GOLD / BLUE / BLACK - default BLUE for this panel
   const [version, setVersion] = React.useState('GOLD')
 
+  /* Paleta clienteib1@crm.com: dorado oscuro con letras negras */
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-emerald-200 via-teal-300 to-emerald-400 text-black">
-      <aside className="w-64 bg-black text-white p-6 flex-shrink-0 hidden md:block">
+    <div className="flex min-h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 text-black">
+      <aside className="w-64 bg-amber-950/90 text-black p-6 flex-shrink-0 hidden md:block border-r border-amber-700">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-full bg-white border-2 border-blue-600 flex items-center justify-center">
-            <span className="text-yellow-600 font-bold text-xl">IB</span>
+          <div className="w-12 h-12 rounded-full bg-amber-500 border-2 border-amber-700 flex items-center justify-center">
+            <span className="text-amber-950 font-bold text-xl">IB</span>
           </div>
-          <div className="text-2xl font-bold">Cliente Gold</div>
+          <div className="text-2xl font-bold text-black">Cliente Gold</div>
         </div>
         <nav>
           <ul>
@@ -393,7 +402,7 @@ const ClienteIB1Panel = () => {
                 <button
                   onClick={() => setActiveSection(section.id)}
                   className={`flex items-center w-full text-left py-2 px-4 rounded-lg transition-colors duration-200 ${
-                    activeSection === section.id ? 'bg-blue-300 text-black' : 'hover:bg-white/10'
+                    activeSection === section.id ? 'bg-amber-500 text-black' : 'hover:bg-amber-700/40 text-black'
                   }`}
                 >
                   <section.icon size={20} className="mr-3" />
@@ -404,7 +413,7 @@ const ClienteIB1Panel = () => {
             <li className="mt-8">
               <button
                 onClick={logout}
-                className="flex items-center w-full text-left py-2 px-4 rounded-lg transition-colors duration-200 hover:bg-white/10 text-red-400"
+                className="flex items-center w-full text-left py-2 px-4 rounded-lg transition-colors duration-200 hover:bg-amber-700/40 text-red-900"
               >
                 <LogOut size={20} className="mr-3" />
                 Cerrar Sesión
@@ -416,7 +425,7 @@ const ClienteIB1Panel = () => {
 
       {/* Desktop header */}
       <div className="hidden md:flex flex-col flex-1">
-        <div className="bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 text-white p-4 flex justify-end items-center border-b border-blue-600">
+        <div className="bg-amber-950/90 text-black p-4 flex justify-end items-center border-b border-amber-700">
           <NotificationBell />
         </div>
 
@@ -426,31 +435,31 @@ const ClienteIB1Panel = () => {
         </div>
       </div>
 
-      <div className="md:hidden bg-black text-white p-4 flex justify-between items-center w-full">
-        <div className="flex items-center gap-2 text-xl font-bold">
-          <div className="w-9 h-9 rounded-full bg-white border-2 border-blue-600 flex items-center justify-center">
-            <span className="text-yellow-600 font-bold text-base">IB</span>
+      <div className="md:hidden bg-amber-950/90 text-black p-4 flex justify-between items-center w-full border-b border-amber-700">
+        <div className="flex items-center gap-2 text-xl font-bold text-black">
+          <div className="w-9 h-9 rounded-full bg-amber-500 border-2 border-amber-700 flex items-center justify-center">
+            <span className="text-amber-950 font-bold text-base">IB</span>
           </div>
           Cliente Gold
         </div>
         <div className="flex items-center gap-2">
           <NotificationBell />
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-black">
             {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
 
       {isSidebarOpen && (
-        <aside className="fixed inset-y-0 left-0 w-64 bg-black text-white p-6 z-50 md:hidden">
+        <aside className="fixed inset-y-0 left-0 w-64 bg-amber-950/95 text-black p-6 z-50 md:hidden border-r border-amber-700">
           <div className="flex justify-between items-center mb-8">
-            <div className="flex items-center gap-3 text-2xl font-bold">
-              <div className="w-10 h-10 rounded-full bg-white border-2 border-blue-600 flex items-center justify-center">
-                <span className="text-blue-400 font-bold text-lg">IB</span>
+            <div className="flex items-center gap-3 text-2xl font-bold text-black">
+              <div className="w-10 h-10 rounded-full bg-amber-500 border-2 border-amber-700 flex items-center justify-center">
+                <span className="text-amber-950 font-bold text-lg">IB</span>
               </div>
-              Cliente Panel
+              Cliente Gold
             </div>
-            <button onClick={() => setIsSidebarOpen(false)}>
+            <button onClick={() => setIsSidebarOpen(false)} className="text-black">
               <X size={24} />
             </button>
           </div>
@@ -464,7 +473,7 @@ const ClienteIB1Panel = () => {
                       setIsSidebarOpen(false)
                     }}
                     className={`flex items-center w-full text-left py-2 px-4 rounded-lg transition-colors duration-200 ${
-                      activeSection === section.id ? 'bg-blue-300 text-black' : 'hover:bg-white/10'
+                      activeSection === section.id ? 'bg-amber-500 text-black' : 'hover:bg-amber-700/40 text-black'
                     }`}
                   >
                     <section.icon size={20} className="mr-3" />
@@ -478,7 +487,7 @@ const ClienteIB1Panel = () => {
                     logout()
                     setIsSidebarOpen(false)
                   }}
-                  className="flex items-center w-full text-left py-2 px-4 rounded-lg transition-colors duration-200 hover:bg-white/10 text-red-400"
+                  className="flex items-center w-full text-left py-2 px-4 rounded-lg transition-colors duration-200 hover:bg-amber-700/40 text-red-900"
                 >
                   <LogOut size={20} className="mr-3" />
                   Cerrar Sesión

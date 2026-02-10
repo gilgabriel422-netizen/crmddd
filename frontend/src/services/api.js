@@ -53,20 +53,17 @@ const getOfflineResponse = (config) => {
 
   // Auth
   if (url === '/usuarios/login' && method === 'post') {
-    const email = (data?.email || '').toString().trim().toLowerCase();
+    let email = (data?.email || '').toString().trim();
     const password = (data?.password || '').toString();
 
-    // Allow the shared offline password for all demo dashboards
-    const allowedPassword = 'innovetion';
-
-    if (password !== allowedPassword) {
-      return { status: 401, data: { error: 'Credenciales inválidas' } };
+    // Si no contiene @, es número de contrato (credenciales: número de contrato + cédula)
+    if (email && !email.includes('@')) {
+      email = email.replace(/\s+/g, '').toLowerCase() + '@cliente.crm.com';
     }
+    const emailLower = email.toLowerCase();
+    const prefix = emailLower.split('@')[0];
 
-    // Normalize email prefix to determine role
-    const prefix = email.split('@')[0];
-
-    // Map common prefixes to roles (incluye dashboards locales)
+    // Map common prefixes to roles
     const roleMap = {
       'admin': 'admin',
       'admincrm': 'admin',
@@ -83,18 +80,33 @@ const getOfflineResponse = (config) => {
       'postventa': 'postventa'
     };
 
-    let rol = roleMap[prefix] || (email === 'admin@crm.com' ? 'admin' : (prefix.startsWith('cliente') ? 'cliente' : null));
-    // Permitir roles personalizados para dashboards locales
+    let rol = roleMap[prefix];
+    // Login con número de contrato (@cliente.crm.com): aceptar cualquier contraseña en mock; rol cliente por defecto
+    if (!rol && emailLower.endsWith('@cliente.crm.com')) {
+      rol = 'cliente';
+    }
+    if (!rol) {
+      rol = emailLower === 'admin@crm.com' ? 'admin' : (prefix.startsWith('cliente') ? 'cliente' : null);
+    }
     if (!rol && ['contratos','atencion','postventa','cobranzas'].includes(prefix)) {
       rol = prefix;
     }
+
+    // Contraseña: para staff (admin, cobranzas, etc.) usar 'innovetion'; para clientes (número de contrato + cédula) aceptar cualquier no vacía
+    const isClientLogin = rol === 'cliente' || rol === 'clienteIB1' || rol === 'clienteIB2' || emailLower.endsWith('@cliente.crm.com');
+    if (isClientLogin) {
+      if (!password) return { status: 401, data: { error: 'Credenciales inválidas' } };
+    } else {
+      if (password !== 'innovetion') return { status: 401, data: { error: 'Credenciales inválidas' } };
+    }
+
     if (!rol) {
       return { status: 401, data: { error: 'Credenciales inválidas' } };
     }
     const usuario = {
       id: rol === 'admin' ? 1 : rol === 'cliente' ? 2 : rol === 'clienteIB1' ? 3 : rol === 'clienteIB2' ? 4 : 100 + Math.floor(Math.random()*1000),
       nombre: rol.charAt(0).toUpperCase() + rol.slice(1),
-      email: data.email,
+      email: data.email || email,
       rol
     };
     return { status: 200, data: { token: createMockToken(usuario), usuario } };
@@ -119,6 +131,18 @@ const getOfflineResponse = (config) => {
   }
   if (url.startsWith('/clientes/') && (method === 'put' || method === 'delete')) {
     return { status: 200, data: { success: true } };
+  }
+  if (url === '/contactos' && method === 'get') {
+    return { status: 200, data: [] };
+  }
+  if (url.startsWith('/contactos/cliente/') && method === 'get') {
+    return { status: 200, data: [] };
+  }
+  if (url === '/contactos' && method === 'post') {
+    return { status: 201, data: {} };
+  }
+  if (url.startsWith('/contactos/') && (method === 'get' || method === 'put' || method === 'delete')) {
+    return { status: 200, data: {} };
   }
   if (url === '/clientes/stats/overview' && method === 'get') {
     return {

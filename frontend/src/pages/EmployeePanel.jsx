@@ -163,9 +163,9 @@ const EmployeePanel = () => {
       const response = await clientService.getClients({ page: 1, limit: 1000 })
       const clients = response.clients || []
       
-      // Filtrar contratos que empiecen con KMPRY y extraer números
+      // Filtrar contratos que empiecen con INB y extraer números
       const contractNumbers = clients
-        .filter(client => client.contract_number && client.contract_number.startsWith('KMPRY'))
+        .filter(client => client.contract_number && client.contract_number.startsWith('INB'))
         .map(client => {
           const parts = client.contract_number.split(' ')
           const numberPart = parts[parts.length - 1]
@@ -200,7 +200,7 @@ const EmployeePanel = () => {
     pago_mixto: 'No',
     cantidad_tarjetas: 1,
     tarjetas: [{ tipo: '', monto: 0, datafast: '' }],
-    datafast: 'KMP',
+    datafast: 'Innovation Bussines',
     tipo_tarjeta: '',
     forma_pago: '',
     tiempo_meses: '',
@@ -1328,7 +1328,7 @@ Agradecemos su preferencia y esperamos que tenga una excelente estadía.`;
       const neto = totalVenta - iva
       
       // Construir el número de contrato completo
-      const contratoCompleto = `KMPRY ${newClientData.contrato_suffix} ${newClientData.contrato_number}`
+      const contratoCompleto = `INB ${newClientData.contrato_suffix} ${newClientData.contrato_number}`
       
       const clientData = {
         ...newClientData,
@@ -1379,7 +1379,7 @@ Agradecemos su preferencia y esperamos que tenga una excelente estadía.`;
         pago_mixto: 'No',
         cantidad_tarjetas: 1,
         tarjetas: [{ tipo: '', monto: 0, datafast: '' }],
-        datafast: 'KMP',
+        datafast: 'Innovation Bussines',
         tipo_tarjeta: '',
         forma_pago: '',
         tiempo_meses: '',
@@ -3731,7 +3731,7 @@ Agradecemos su preferencia y esperamos que tenga una excelente estadía.`;
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      value="KMPRY"
+                      value="INB"
                       className="w-20 px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
                       readOnly
                     />
@@ -3752,7 +3752,7 @@ Agradecemos su preferencia y esperamos que tenga una excelente estadía.`;
                     />
                   </div>
                   <div className="mt-1 text-sm text-gray-500">
-                    Formato: KMPRY {newClientData.contrato_suffix || 'XXX'} {newClientData.contrato_number || '0001'}
+                    Formato: INB {newClientData.contrato_suffix || 'XXX'} {newClientData.contrato_number || '0001'}
                   </div>
                 </div>
                 <div>
@@ -3878,10 +3878,7 @@ Agradecemos su preferencia y esperamos que tenga una excelente estadía.`;
                         onChange={(e) => handleNewClientChange('datafast', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="KMP">KMP</option>
-                        <option value="RCC">RCC</option>
-                        <option value="Kempery">Kempery</option>
-                        <option value="Payphone Zindy">Payphone Zindy</option>
+                        <option value="Innovation Bussines">Innovation Bussines</option>
                       </select>
                     </div>
                     <div>

@@ -73,11 +73,17 @@ exports.login = async (req, res) => {
     console.log('🔑 Intento de login recibido');
     console.log('📧 Email:', req.body.email);
 
-    const { email, password } = req.body;
+    let { email, password } = req.body;
 
     if (!email || !password) {
       console.log('❌ Faltan credenciales');
       return res.status(400).json({ error: 'Email y password son requeridos' });
+    }
+
+    // Si no contiene @, tratar como número de contrato (credenciales: número de contrato + cédula)
+    if (typeof email === 'string' && !email.includes('@')) {
+      email = email.replace(/\s+/g, '').toLowerCase() + '@cliente.crm.com';
+      console.log('📋 Login con número de contrato, email normalizado:', email);
     }
 
     let usuario;

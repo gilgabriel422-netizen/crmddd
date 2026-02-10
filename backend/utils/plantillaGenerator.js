@@ -21,8 +21,8 @@ class PlantillaContratoGenerator {
       
       autorizacion: {
         empresa: {
-          razon_social: 'PACIFIC ADVENTURE PACITURE S.A.S',
-          nombre_comercial: 'INNOVATION BUSINESS',
+          razon_social: 'INNOVATION BUSSINES',
+          nombre_comercial: 'Innovation Bussines',
           ruc: '1793230574001'
         },
         valor: {

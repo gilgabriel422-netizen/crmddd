@@ -89,6 +89,23 @@ const reportService = {
     }
   },
 
+  // Obtener resumen de pagos
+  getPaymentsSummary: async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await api.get('/reports/payments-summary', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error obteniendo resumen de pagos:', error);
+      throw error;
+    }
+  },
+
   // Obtener sumatorias del último mes
   getLastMonthSummary: async (period = 'this_month') => {
     try {

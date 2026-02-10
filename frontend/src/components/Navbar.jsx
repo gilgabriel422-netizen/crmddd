@@ -43,17 +43,6 @@ const Navbar = () => {
     navigate('/')
   }
 
-  const demoUsers = [
-    { email: 'admin@crm.com', password: 'admin123', label: 'Admin' },
-    { email: 'cobranzas@crm.com', password: 'admin123', label: 'Cobranzas' },
-    { email: 'contratos@crm.com', password: 'admin123', label: 'Contratos' },
-    { email: 'atencion@crm.com', password: 'admin123', label: 'Atención' },
-    { email: 'postventa@crm.com', password: 'admin123', label: 'Postventa' },
-    { email: 'clientes@crm.com', password: 'admin123', label: 'Cliente Blue' },
-    { email: 'clienteib1@crm.com', password: 'admin123', label: 'Cliente Gold' },
-    { email: 'clienteib2@crm.com', password: 'admin123', label: 'Cliente Black' }
-  ]
-
   return (
     <>
       <nav className="sticky top-0 z-50 bg-gradient-to-r from-amber-900 to-amber-800 shadow-lg">
@@ -232,25 +221,6 @@ const Navbar = () => {
                 {loading ? 'Cargando...' : 'Entrar'}
               </button>
             </form>
-
-            <div className="mt-6 border-t pt-4">
-              <p className="text-xs font-semibold text-gray-600 mb-3 uppercase">Usuarios de Prueba</p>
-              <div className="space-y-2">
-                {demoUsers.map((user) => (
-                  <button
-                    key={user.email}
-                    onClick={() => {
-                      setEmail(user.email)
-                      setPassword(user.password)
-                    }}
-                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm py-2 px-3 rounded transition text-left border border-gray-300"
-                  >
-                    <span className="font-semibold">{user.label}</span>
-                    <span className="text-gray-600 text-xs"> ({user.email})</span>
-                  </button>
-                ))}
-              </div>
-            </div>
 
             <div className="mt-4 text-center">
               <button

@@ -17,10 +17,20 @@ export default function DashboardAtencionCliente() {
   const { authed, logout } = useAuth()
   const navigate = useNavigate()
   const [activeModule, setActiveModule] = useState('bandeja')
-  const [requerimientos] = useState([])
+  const [requerimientos, setRequerimientos] = useState([])
   const [postventa] = useState([])
   const [showRequerimiento, setShowRequerimiento] = useState(false)
+  const [requerimientoForm, setRequerimientoForm] = useState({
+    cliente_id: '',
+    tipo: 'Documentación',
+    descripcion: '',
+    notas: ''
+  })
+  const [requerimientoError, setRequerimientoError] = useState('')
+  const [requerimientoSaving, setRequerimientoSaving] = useState(false)
   const [showEnviarPostventa, setShowEnviarPostventa] = useState(false)
+  const [selectedPostventaIds, setSelectedPostventaIds] = useState([])
+  const [enviarPostventaSaving, setEnviarPostventaSaving] = useState(false)
   const [selectedCliente, setSelectedCliente] = useState(null)
   const [clients, setClients] = useState([])
   const [allClients, setAllClients] = useState([])
@@ -76,6 +86,106 @@ export default function DashboardAtencionCliente() {
     setWelcomeTemplate('')
     setWelcomePhone('')
     setShowWelcomeModal(true)
+  }
+
+  const handleRequerimientoChange = (field, value) => {
+    setRequerimientoForm((prev) => ({ ...prev, [field]: value }))
+    setRequerimientoError('')
+  }
+
+  const closeRequerimientoModal = () => {
+    setShowRequerimiento(false)
+    setRequerimientoForm({ cliente_id: '', tipo: 'Documentación', descripcion: '', notas: '' })
+    setRequerimientoError('')
+  }
+
+  const handleGuardarRequerimiento = () => {
+    if (!requerimientoForm.descripcion.trim()) {
+      setRequerimientoError('Ingresa la descripción del requerimiento.')
+      return
+    }
+    setRequerimientoSaving(true)
+    setRequerimientoError('')
+    const cliente = allClients.find((c) => String(c.id) === String(requerimientoForm.cliente_id))
+    const clienteNombre = cliente ? `${cliente.first_name} ${cliente.last_name}` : requerimientoForm.cliente_id ? `Cliente #${requerimientoForm.cliente_id}` : 'Sin asignar'
+    setRequerimientos((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        cliente: clienteNombre,
+        tipo: requerimientoForm.tipo,
+        detalle: requerimientoForm.descripcion,
+        notas: requerimientoForm.notas,
+        created_at: new Date().toISOString()
+      }
+    ])
+    setRequerimientoSaving(false)
+    closeRequerimientoModal()
+  }
+
+  const openEnviarPostventaModal = () => {
+    setSelectedPostventaIds([])
+    setShowEnviarPostventa(true)
+  }
+
+  const closeEnviarPostventaModal = () => {
+    setShowEnviarPostventa(false)
+    setSelectedPostventaIds([])
+    setEnviarPostventaSaving(false)
+  }
+
+  const togglePostventaClient = (id) => {
+    setSelectedPostventaIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    )
+  }
+
+  const selectAllPostventa = () => {
+    setSelectedPostventaIds(clients.map((c) => c.id))
+  }
+
+  const deselectAllPostventa = () => {
+    setSelectedPostventaIds([])
+  }
+
+  const handleEnviarSeleccionadosAPostventa = async () => {
+    if (selectedPostventaIds.length === 0) {
+      alert('Selecciona al menos un cliente.')
+      return
+    }
+    setEnviarPostventaSaving(true)
+    try {
+      const api = await import('../services/api')
+      const users = await api.userService.getUsers()
+      const post = (users.users || users).find((u) => u.email === 'postventa@crm.com' || u.email === 'postventa')
+      if (!post) {
+        alert('Usuario Postventa no encontrado')
+        setEnviarPostventaSaving(false)
+        return
+      }
+      const currentUser = JSON.parse(localStorage.getItem('user') || 'null')
+      for (const clientId of selectedPostventaIds) {
+        await api.clientService.updateClient(clientId, { usuario_asignado_id: post.id })
+        try {
+          await api.default.post('/client-transfers', {
+            clientId,
+            fromUserId: currentUser?.id || null,
+            toUserId: post.id,
+            reason: 'Enviado a Postventa desde Atención'
+          })
+        } catch (err) {
+          console.warn('Registro de transferencia falló', err)
+        }
+      }
+      setClients((prev) => prev.filter((c) => !selectedPostventaIds.includes(c.id)))
+      alert(`Se envió a Postventa: ${selectedPostventaIds.length} cliente(s).`)
+      closeEnviarPostventaModal()
+    } catch (e) {
+      console.error(e)
+      alert('Error: ' + (e.message || e))
+    } finally {
+      setEnviarPostventaSaving(false)
+    }
   }
 
   return (
@@ -146,8 +256,10 @@ export default function DashboardAtencionCliente() {
               {requerimientos.length === 0 ? (
                 <li className="text-gray-600">No hay requerimientos registrados</li>
               ) : (
-                requerimientos.map((r, i) => (
-                  <li key={i} className="border-b py-2 text-black">{r.cliente} - {r.detalle}</li>
+                requerimientos.map((r) => (
+                  <li key={r.id} className="border-b py-2 text-black">
+                    <span className="font-medium">{r.cliente}</span> — {r.tipo}: {r.detalle}
+                  </li>
                 ))
               )}
             </ul>
@@ -161,7 +273,7 @@ export default function DashboardAtencionCliente() {
               <h3 className="text-xl font-bold text-black">Clientes asignados a Atención</h3>
               <button
                 className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-700 text-black rounded"
-                onClick={() => setShowEnviarPostventa(true)}
+                onClick={openEnviarPostventaModal}
               >
                 Enviar a Postventa
               </button>
@@ -304,6 +416,153 @@ export default function DashboardAtencionCliente() {
           </div>
         )}
       </main>
+
+      {/* Modal Enviar a Postventa */}
+      {showEnviarPostventa && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full shadow-xl max-h-[85vh] flex flex-col">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Enviar clientes a Postventa</h3>
+            <p className="text-sm text-gray-600 mb-3">Elige uno o varios clientes para reasignarlos a Postventa.</p>
+            {clients.length === 0 ? (
+              <p className="text-gray-500 py-4">No hay clientes asignados a Atención.</p>
+            ) : (
+              <>
+                <div className="flex gap-3 mb-3">
+                  <button
+                    type="button"
+                    className="text-sm text-blue-600 hover:underline"
+                    onClick={selectAllPostventa}
+                  >
+                    Seleccionar todos
+                  </button>
+                  <button
+                    type="button"
+                    className="text-sm text-gray-600 hover:underline"
+                    onClick={deselectAllPostventa}
+                  >
+                    Deseleccionar todos
+                  </button>
+                </div>
+                <ul className="border border-gray-200 rounded-lg overflow-y-auto flex-1 min-h-0 space-y-0 divide-y divide-gray-100">
+                  {clients.map((c) => (
+                    <li key={c.id} className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50">
+                      <input
+                        type="checkbox"
+                        checked={selectedPostventaIds.includes(c.id)}
+                        onChange={() => togglePostventaClient(c.id)}
+                        className="rounded border-gray-300 text-yellow-600 focus:ring-yellow-500"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium text-gray-900">{c.first_name} {c.last_name}</span>
+                        <span className="text-gray-500 text-sm ml-1">{c.email}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-sm text-gray-500 mt-2">
+                  {selectedPostventaIds.length} de {clients.length} seleccionado(s)
+                </p>
+              </>
+            )}
+            <div className="flex gap-2 justify-end mt-4 pt-3 border-t border-gray-200">
+              <button
+                type="button"
+                className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                onClick={closeEnviarPostventaModal}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="px-3 py-2 bg-gradient-to-r from-yellow-400 to-yellow-700 text-black rounded-lg font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={clients.length === 0 || selectedPostventaIds.length === 0 || enviarPostventaSaving}
+                onClick={handleEnviarSeleccionadosAPostventa}
+              >
+                {enviarPostventaSaving ? 'Enviando...' : `Enviar ${selectedPostventaIds.length > 0 ? `(${selectedPostventaIds.length})` : ''} a Postventa`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Nuevo Requerimiento */}
+      {showRequerimiento && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Nuevo Requerimiento</h3>
+            {requerimientoError && (
+              <div className="mb-3 p-2 bg-red-50 border border-red-200 text-red-700 rounded text-sm">
+                {requerimientoError}
+              </div>
+            )}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cliente (opcional)</label>
+                <select
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  value={requerimientoForm.cliente_id}
+                  onChange={(e) => handleRequerimientoChange('cliente_id', e.target.value)}
+                >
+                  <option value="">— Sin asignar —</option>
+                  {(allClients || []).map((c) => (
+                    <option key={c.id} value={c.id}>{c.first_name} {c.last_name} — {c.contract_number || c.email}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                <select
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  value={requerimientoForm.tipo}
+                  onChange={(e) => handleRequerimientoChange('tipo', e.target.value)}
+                >
+                  <option value="Documentación">Documentación</option>
+                  <option value="Consulta">Consulta</option>
+                  <option value="Seguimiento">Seguimiento</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción *</label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  rows={3}
+                  value={requerimientoForm.descripcion}
+                  onChange={(e) => handleRequerimientoChange('descripcion', e.target.value)}
+                  placeholder="Describe el requerimiento..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notas (opcional)</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  value={requerimientoForm.notas}
+                  onChange={(e) => handleRequerimientoChange('notas', e.target.value)}
+                  placeholder="Notas adicionales"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 justify-end mt-4">
+              <button
+                type="button"
+                className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                onClick={closeRequerimientoModal}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="px-3 py-2 bg-gradient-to-r from-yellow-400 to-yellow-700 text-black rounded-lg font-medium hover:opacity-90 disabled:opacity-50"
+                disabled={requerimientoSaving}
+                onClick={handleGuardarRequerimiento}
+              >
+                {requerimientoSaving ? 'Guardando...' : 'Registrar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Dar bienvenida */}
       {showWelcomeModal && (

@@ -71,24 +71,21 @@ async function crearClienteConUsuario(clienteData, rolCliente = 'blue') {
     let numeroContrato = (clienteData.contract_number || '').trim();
     const cedula = (clienteData.document_number || '').trim();
 
-    // Extraer solo el número final del contrato (después del último espacio)
-    // Ej: "KMPRY SDSD 0005" → "0005"
-    const partes = numeroContrato.split(' ');
-    const numeroContratoFinal = partes[partes.length - 1];
+    // Normalizar número de contrato para uso como login (sin espacios, minúsculas)
+    const numeroContratoNormalizado = numeroContrato.replace(/\s+/g, '').toLowerCase();
 
     console.log(`📋 Número de contrato completo: '${numeroContrato}'`);
-    console.log(`📋 Número de contrato para email: '${numeroContratoFinal}'`);
     console.log(`🆔 Cédula: '${cedula}'`);
 
-    if (!numeroContratoFinal) {
+    if (!numeroContratoNormalizado) {
       throw new Error('El número de contrato es requerido para crear las credenciales del usuario');
     }
     if (!cedula) {
       throw new Error('La cédula es requerida para crear las credenciales del usuario');
     }
 
-    // Email: número de contrato FINAL + dominio
-    const emailUsuario = `${numeroContratoFinal}@cliente.crm.com`;
+    // Email/login: número de contrato normalizado + dominio (el cliente ingresa con número de contrato y cédula)
+    const emailUsuario = `${numeroContratoNormalizado}@cliente.crm.com`;
     
     // Contraseña: la cédula del cliente (sin hashear, texto plano)
     const passwordPlain = cedula;
@@ -116,15 +113,16 @@ async function crearClienteConUsuario(clienteData, rolCliente = 'blue') {
       [usuario.id, clienteId]
     );
 
-    // 5. Crear un contrato inicial para el cliente
-    const numeroContrato = `CT${new Date().getFullYear().toString().slice(-2)}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
-    
+    // 5. Crear un contrato inicial para el cliente (usar número de contrato del cliente, no uno nuevo)
+    const numeroContratoViaje = (clienteData.contract_number || '').trim() || `CT${new Date().getFullYear().toString().slice(-2)}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+    const valorContrato = Number(clienteData.total_amount) || 0;
+
     const resultContrato = await client.query(
       `INSERT INTO contratos_viajes (
-        cliente_id, numero_contrato, fecha_contrato, estado, creado_por
-      ) VALUES ($1, $2, $3, $4, $5)
+        cliente_id, numero_contrato, fecha_contrato, valor_contrato, estado, creado_por
+      ) VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id, numero_contrato`,
-      [clienteId, numeroContrato, new Date(), 'pendiente', 'admin']
+      [clienteId, numeroContratoViaje, new Date(), valorContrato, 'pendiente', 'admin']
     );
 
     console.log(`✅ Contrato creado con ID: ${resultContrato.rows[0].id}, Número: ${resultContrato.rows[0].numero_contrato}`);
@@ -150,10 +148,11 @@ async function crearClienteConUsuario(clienteData, rolCliente = 'blue') {
       },
       credenciales: {
         email: emailUsuario,
+        login: numeroContrato,
         password: passwordPlain,
         rol: rolCliente
       },
-      mensaje: `✅ Cliente, usuario y contrato creados exitosamente.\n\n📧 Email: ${emailUsuario}\n🔐 Contraseña: ${passwordPlain}\n👤 Rol: ${rolCliente}\n📋 Contrato: ${resultContrato.rows[0].numero_contrato}`
+      mensaje: `✅ Cliente, usuario y contrato creados exitosamente.\n\n👤 Usuario (número de contrato): ${numeroContrato}\n🔐 Contraseña (cédula): ${passwordPlain}\n👤 Rol: ${rolCliente}\n📋 Contrato: ${resultContrato.rows[0].numero_contrato}`
     };
   } catch (error) {
     console.error('\n❌ ERROR en crearClienteConUsuario:', error.message);

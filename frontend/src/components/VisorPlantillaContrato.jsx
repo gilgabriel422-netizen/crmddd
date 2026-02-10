@@ -79,24 +79,25 @@ const VisorPlantillaContrato = ({ cliente }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600">Nombre</p>
-                <p className="font-semibold">{plantilla.cliente.nombres_completos}</p>
+                <p className="font-semibold">{plantilla.cliente?.nombres_completos ?? '—'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Cédula</p>
-                <p className="font-semibold">{plantilla.cliente.cedula}</p>
+                <p className="font-semibold">{plantilla.cliente?.cedula ?? '—'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Teléfono</p>
-                <p className="font-semibold">{plantilla.cliente.telefono}</p>
+                <p className="font-semibold">{plantilla.cliente?.telefono ?? '—'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Ciudad</p>
-                <p className="font-semibold">{plantilla.cliente.ciudad}</p>
+                <p className="font-semibold">{plantilla.cliente?.ciudad ?? '—'}</p>
               </div>
             </div>
           </div>
 
-          {/* Datos de Tarjeta */}
+          {/* Datos de Tarjeta - solo si hay datos */}
+          {plantilla.tarjeta && (
           <div className="mb-6">
             <h4 className="font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-green-300">
               💳 Datos de Tarjeta
@@ -104,22 +105,23 @@ const VisorPlantillaContrato = ({ cliente }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600">Tarjetahabiente</p>
-                <p className="font-semibold">{plantilla.tarjeta.nombre_tarjetahabiente}</p>
+                <p className="font-semibold">{plantilla.tarjeta?.nombre_tarjetahabiente ?? '—'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Tipo</p>
-                <p className="font-semibold">{plantilla.tarjeta.tipo_tarjeta}</p>
+                <p className="font-semibold">{plantilla.tarjeta?.tipo_tarjeta ?? '—'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Últimos Dígitos</p>
-                <p className="font-semibold">**** {plantilla.tarjeta.numero_tarjeta.slice(-4)}</p>
+                <p className="font-semibold">**** {(plantilla.tarjeta?.numero_tarjeta || '').slice(-4) || '—'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Caducidad</p>
-                <p className="font-semibold">{plantilla.tarjeta.fecha_caducidad}</p>
+                <p className="font-semibold">{plantilla.tarjeta?.fecha_caducidad ?? '—'}</p>
               </div>
             </div>
           </div>
+          )}
 
           {/* Detalles del Contrato */}
           <div className="mb-6">
@@ -129,32 +131,33 @@ const VisorPlantillaContrato = ({ cliente }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600">Número de Contrato</p>
-                <p className="font-semibold text-blue-600">{plantilla.contrato.numero_contrato}</p>
+                <p className="font-semibold text-blue-600">{plantilla.contrato?.numero_contrato ?? '—'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Fecha</p>
-                <p className="font-semibold">{new Date(plantilla.contrato.fecha).toLocaleDateString('es-EC')}</p>
+                <p className="font-semibold">{plantilla.contrato?.fecha ? new Date(plantilla.contrato.fecha).toLocaleDateString('es-EC') : '—'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Valor del Contrato</p>
-                <p className="font-semibold text-green-600">${plantilla.contrato.valor_contrato.toFixed(2)}</p>
+                <p className="font-semibold text-green-600">${(Number(plantilla.contrato?.valor_contrato) || 0).toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Años de Duración</p>
-                <p className="font-semibold">{plantilla.contrato.anos_contrato} años</p>
+                <p className="font-semibold">{plantilla.contrato?.anos_contrato ?? '—'} años</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Número de Noches</p>
-                <p className="font-semibold">{plantilla.contrato.numero_noches} noches</p>
+                <p className="font-semibold">{plantilla.contrato?.numero_noches ?? '—'} noches</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Tarjeta y Banco</p>
-                <p className="font-semibold">{plantilla.contrato.tarjeta_y_banco}</p>
+                <p className="font-semibold">{plantilla.contrato?.tarjeta_y_banco ?? '—'}</p>
               </div>
             </div>
           </div>
 
-          {/* Autorización de Pago */}
+          {/* Autorización de Pago - solo si hay datos */}
+          {plantilla.autorizacion && (
           <div className="mb-6">
             <h4 className="font-semibold text-gray-800 mb-3 pb-2 border-b-2 border-yellow-300">
               ✅ Autorización de Pago
@@ -162,26 +165,27 @@ const VisorPlantillaContrato = ({ cliente }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-600">Monto</p>
-                <p className="font-semibold">${plantilla.autorizacion.valor.monto_numerico.toFixed(2)}</p>
+                <p className="font-semibold">${(Number(plantilla.autorizacion?.valor?.monto_numerico) || 0).toFixed(2)}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">En Letras</p>
-                <p className="font-semibold text-sm">{plantilla.autorizacion.valor.monto_letras}</p>
+                <p className="font-semibold text-sm">{plantilla.autorizacion?.valor?.monto_letras ?? '—'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Voucher Lote</p>
-                <p className="font-semibold">{plantilla.autorizacion.voucher.lote}</p>
+                <p className="font-semibold">{plantilla.autorizacion?.voucher?.lote ?? '—'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Referencia</p>
-                <p className="font-semibold">{plantilla.autorizacion.voucher.referencia}</p>
+                <p className="font-semibold">{plantilla.autorizacion?.voucher?.referencia ?? '—'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Aprobación</p>
-                <p className="font-semibold">{plantilla.autorizacion.voucher.aprobacion}</p>
+                <p className="font-semibold">{plantilla.autorizacion?.voucher?.aprobacion ?? '—'}</p>
               </div>
             </div>
           </div>
+          )}
 
           {/* Estadía */}
           <div className="mb-6">
@@ -192,16 +196,16 @@ const VisorPlantillaContrato = ({ cliente }) => {
               <div className="bg-blue-50 p-3 rounded">
                 <p className="text-sm text-gray-600">Estadía Internacional</p>
                 <p className="font-semibold">
-                  {plantilla.estadia.internacional.incluye ? '✓ Incluida' : '✗ No incluida'}
+                  {plantilla.estadia?.internacional?.incluye ? '✓ Incluida' : '✗ No incluida'}
                 </p>
-                <p className="text-sm text-gray-600">{plantilla.estadia.internacional.numero_pax} personas</p>
+                <p className="text-sm text-gray-600">{plantilla.estadia?.internacional?.numero_pax ?? '—'} personas</p>
               </div>
               <div className="bg-green-50 p-3 rounded">
                 <p className="text-sm text-gray-600">Estadía Nacional</p>
                 <p className="font-semibold">
-                  {plantilla.estadia.nacional.incluye ? '✓ Incluida' : '✗ No incluida'}
+                  {plantilla.estadia?.nacional?.incluye ? '✓ Incluida' : '✗ No incluida'}
                 </p>
-                <p className="text-sm text-gray-600">{plantilla.estadia.nacional.numero_pax} personas</p>
+                <p className="text-sm text-gray-600">{plantilla.estadia?.nacional?.numero_pax ?? '—'} personas</p>
               </div>
             </div>
           </div>
@@ -214,11 +218,11 @@ const VisorPlantillaContrato = ({ cliente }) => {
             <div className="space-y-3">
               <div className="bg-yellow-50 p-3 rounded">
                 <p className="text-sm text-gray-600">Cortesías por Asistencia</p>
-                <p className="font-semibold">{plantilla.beneficios.cortesias_por_asistencia}</p>
+                <p className="font-semibold">{plantilla.beneficios?.cortesias_por_asistencia ?? '—'}</p>
               </div>
               <div className="bg-orange-50 p-3 rounded">
                 <p className="text-sm text-gray-600">Ofrecimientos Adicionales</p>
-                <p className="font-semibold">{plantilla.beneficios.ofrecimientos_adicionales}</p>
+                <p className="font-semibold">{plantilla.beneficios?.ofrecimientos_adicionales ?? '—'}</p>
               </div>
             </div>
           </div>
@@ -226,9 +230,9 @@ const VisorPlantillaContrato = ({ cliente }) => {
           {/* Empresa */}
           <div className="bg-gray-50 p-4 rounded border border-gray-200">
             <h4 className="font-semibold text-gray-800 mb-2">Empresa</h4>
-            <p className="text-sm"><strong>Razón Social:</strong> {plantilla.autorizacion.empresa.razon_social}</p>
-            <p className="text-sm"><strong>Nombre Comercial:</strong> {plantilla.autorizacion.empresa.nombre_comercial}</p>
-            <p className="text-sm"><strong>RUC:</strong> {plantilla.autorizacion.empresa.ruc}</p>
+            <p className="text-sm"><strong>Razón Social:</strong> {plantilla.autorizacion?.empresa?.razon_social ?? '—'}</p>
+            <p className="text-sm"><strong>Nombre Comercial:</strong> {plantilla.autorizacion?.empresa?.nombre_comercial ?? '—'}</p>
+            <p className="text-sm"><strong>RUC:</strong> {plantilla.autorizacion?.empresa?.ruc ?? '—'}</p>
           </div>
 
           {/* JSON Completo */}

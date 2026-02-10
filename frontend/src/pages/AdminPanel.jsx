@@ -310,10 +310,11 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
     client_id: '',
     contract_number: '',
     total_amount: '',
-    installment_count: '',
+    installment_count: '1',
     installment_amount: '',
     start_date: '',
     end_date: '',
+    payment_method: '',
     notes: ''
   })
   const [paymentError, setPaymentError] = useState('')
@@ -322,6 +323,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
   
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [allClientsCobranzas, setAllClientsCobranzas] = useState([])
   const [showEditForm, setShowEditForm] = useState(false)
   const [editFormData, setEditFormData] = useState({})
   
@@ -1284,13 +1286,13 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
     }
   }
 
-  // Abrir formulario de pago
+  // Abrir formulario de pago (desde fila o desde "Nuevo pago")
   const handleAddPayment = (client) => {
-    setSelectedClientForPayment(client)
+    setSelectedClientForPayment(client || null)
     setPaymentFormData({
-      client_id: client.id,
-      payment_agreement_id: client.payment_agreement_id || '',
-      contract_number: client.contract_number || '',
+      client_id: client ? client.id : '',
+      payment_agreement_id: client?.payment_agreement_id || '',
+      contract_number: client?.contract_number || '',
       payment_amount: '',
       payment_date: new Date().toISOString().split('T')[0],
       payment_method: '',
@@ -1299,6 +1301,25 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
       installment_number: '',
       notes: ''
     })
+    setShowPaymentForm(true)
+  }
+
+  // Abrir panel "Nuevo pago" sin cliente preseleccionado
+  const handleOpenNewPayment = () => {
+    setSelectedClientForPayment(null)
+    setPaymentFormData({
+      client_id: '',
+      payment_agreement_id: '',
+      contract_number: '',
+      payment_amount: '',
+      payment_date: new Date().toISOString().split('T')[0],
+      payment_method: '',
+      payment_type: '',
+      payment_time: '',
+      installment_number: '',
+      notes: ''
+    })
+    setPaymentError('')
     setShowPaymentForm(true)
   }
 
@@ -1312,19 +1333,38 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
   }
 
 
-  // Abrir formulario de convenio
+  // Abrir formulario de convenio (desde fila o desde "Nuevo convenio")
   const handleAddAgreement = (client) => {
-    setSelectedClientForAgreement(client)
+    setSelectedClientForAgreement(client || null)
     setAgreementFormData({
-      client_id: client.id,
-      contract_number: client.contract_number || '',
-      total_amount: client.total_amount || '',
-      installment_count: '',
+      client_id: client ? client.id : '',
+      contract_number: client?.contract_number || '',
+      total_amount: client?.total_amount || '',
+      installment_count: '1',
+      installment_amount: client?.total_amount || '',
+      start_date: new Date().toISOString().split('T')[0],
+      end_date: '',
+      payment_method: '',
+      notes: ''
+    })
+    setShowAgreementForm(true)
+  }
+
+  // Abrir panel "Nuevo convenio" sin cliente preseleccionado
+  const handleOpenNewAgreement = () => {
+    setSelectedClientForAgreement(null)
+    setAgreementFormData({
+      client_id: '',
+      contract_number: '',
+      total_amount: '',
+      installment_count: '1',
       installment_amount: '',
       start_date: new Date().toISOString().split('T')[0],
       end_date: '',
+      payment_method: '',
       notes: ''
     })
+    setAgreementError('')
     setShowAgreementForm(true)
   }
 
@@ -1391,11 +1431,13 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
       )
       
       // Recargar datos
-      await loadUnpaidClients()
+      if (activeSection === 'cobranzas') await loadAllClientsCobranzas(currentPage, searchTerm)
+      else await loadUnpaidClients()
       await loadPayments()
       
       // Cerrar formulario
       setShowPaymentForm(false)
+      setSelectedClientForPayment(null)
       setPaymentFormData({
         client_id: '',
         payment_agreement_id: '',
@@ -1422,11 +1464,19 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
     try {
       setAgreementError('')
       
+      const totalAmount = parseFloat(agreementFormData.total_amount) || 0
+      const installmentCount = parseInt(agreementFormData.installment_count) || 1
+      const installmentAmount = totalAmount / installmentCount
+      const notesWithFormaPago = [
+        agreementFormData.payment_method ? `Forma de pago: ${agreementFormData.payment_method}` : '',
+        agreementFormData.notes || ''
+      ].filter(Boolean).join('\n')
       const agreementData = {
         ...agreementFormData,
-        total_amount: parseFloat(agreementFormData.total_amount),
-        installment_count: parseInt(agreementFormData.installment_count),
-        installment_amount: parseFloat(agreementFormData.installment_amount)
+        total_amount: totalAmount,
+        installment_count: installmentCount,
+        installment_amount: parseFloat(installmentAmount.toFixed(2)),
+        notes: notesWithFormaPago || undefined
       }
 
       const response = await paymentAgreementService.createPaymentAgreement(agreementData)
@@ -1442,23 +1492,26 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
       )
       
       // Recargar datos
-      await loadUnpaidClients()
+      if (activeSection === 'cobranzas') await loadAllClientsCobranzas(currentPage, searchTerm)
+      else await loadUnpaidClients()
       await loadPaymentAgreements()
       
       // Cerrar formulario
       setShowAgreementForm(false)
+      setSelectedClientForAgreement(null)
       setAgreementFormData({
         client_id: '',
         contract_number: '',
         total_amount: '',
-        installment_count: '',
+        installment_count: '1',
         installment_amount: '',
         start_date: '',
         end_date: '',
+        payment_method: '',
         notes: ''
       })
       
-      alert('Convenio de pago creado exitosamente')
+      alert('Convenio registrado exitosamente')
       
     } catch (error) {
       console.error('Error creando convenio:', error)
@@ -1472,34 +1525,62 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
     setShowReceiptModal(true)
   }
 
-  // Cargar clientes en cobranzas con paginación
+  // Cargar TODOS los clientes para Cobranzas (módulos Pago y Convenios)
+  const loadAllClientsCobranzas = async (page = 1, search = '') => {
+    try {
+      setLoading(true)
+      const response = await clientService.getClients({ limit: 1000 })
+      let filtered = response.clients || []
+      if (search.trim()) {
+        const s = search.toLowerCase().trim()
+        filtered = filtered.filter(c =>
+          (c.first_name || '').toLowerCase().includes(s) ||
+          (c.last_name || '').toLowerCase().includes(s) ||
+          (c.email || '').toLowerCase().includes(s) ||
+          (c.contract_number || '').toLowerCase().includes(s)
+        )
+      }
+      const clientsPerPage = 20
+      const start = (page - 1) * clientsPerPage
+      const paginated = filtered.slice(start, start + clientsPerPage)
+      setAllClientsCobranzas(filtered)
+      setClients(paginated)
+      setPagination({
+        currentPage: page,
+        totalPages: Math.ceil(filtered.length / clientsPerPage) || 1,
+        totalClients: filtered.length,
+        hasNext: start + clientsPerPage < filtered.length,
+        hasPrev: page > 1
+      })
+    } catch (err) {
+      console.error('Error loading all clients for cobranzas:', err)
+      setError('Error al cargar los clientes')
+      setAllClientsCobranzas([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Cargar clientes en cobranzas con paginación (solo morosos; se mantiene por compatibilidad)
   const loadUnpaidClients = async (page = 1, search = '') => {
     try {
       setLoading(true)
-      // Obtener todos los clientes para filtrar los de cobranzas
       const response = await clientService.getClients({ limit: 1000 })
       const allCollectionClients = response.clients?.filter(client => client.in_collections === 'Si') || []
-      
-      // Aplicar búsqueda si existe
       let filteredClients = allCollectionClients
       if (search) {
-        filteredClients = allCollectionClients.filter(client => 
+        filteredClients = allCollectionClients.filter(client =>
           client.first_name?.toLowerCase().includes(search.toLowerCase()) ||
           client.last_name?.toLowerCase().includes(search.toLowerCase()) ||
           client.email?.toLowerCase().includes(search.toLowerCase()) ||
           client.contract_number?.toLowerCase().includes(search.toLowerCase())
         )
       }
-      
-      // Implementar paginación manual
       const clientsPerPage = 20
       const startIndex = (page - 1) * clientsPerPage
       const endIndex = startIndex + clientsPerPage
       const paginatedClients = filteredClients.slice(startIndex, endIndex)
-      
       setClients(paginatedClients)
-      
-      // Actualizar información de paginación
       setPagination({
         currentPage: page,
         totalPages: Math.ceil(filteredClients.length / clientsPerPage),
@@ -1507,8 +1588,6 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
         hasNext: endIndex < filteredClients.length,
         hasPrev: page > 1
       })
-      
-      console.log(`Cargados ${paginatedClients.length} de ${filteredClients.length} clientes en cobranzas (página ${page})`)
     } catch (error) {
       console.error('Error loading collection clients:', error)
       setError('Error al cargar los clientes en cobranzas')
@@ -1581,7 +1660,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
     } else if (activeSection === 'clientes') {
       loadClients(currentPage, searchTerm)
     } else if (activeSection === 'cobranzas') {
-      loadUnpaidClients(currentPage, searchTerm)
+      loadAllClientsCobranzas(currentPage, searchTerm)
       loadCollectionsModuleData()
     } else if (activeSection === 'reservas') {
       loadBookings()
@@ -1763,9 +1842,9 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
       const response = await clientService.getClients({ page: 1, limit: 1000 })
       const clients = response.clients || []
       
-      // Filtrar contratos que empiecen con KMPRY y extraer números
+      // Filtrar contratos que empiecen con INB y extraer números
       const contractNumbers = clients
-        .filter(client => client.contract_number && client.contract_number.startsWith('KMPRY'))
+        .filter(client => client.contract_number && client.contract_number.startsWith('INB'))
         .map(client => {
           const parts = client.contract_number.split(' ')
           const numberPart = parts[parts.length - 1]
@@ -1935,7 +2014,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
   const handleSaveNewClient = async () => {
     try {
       // Construir el número de contrato completo
-      const contratoCompleto = `KMPRY ${newClientData.contrato_suffix} ${newClientData.contrato_number}`
+      const contratoCompleto = `INB ${newClientData.contrato_suffix} ${newClientData.contrato_number}`
       
       // Validar campos requeridos
       if (!newClientData.nombres || !newClientData.apellidos || !newClientData.cedula || !newClientData.contrato_suffix) {
@@ -3862,9 +3941,9 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
   const handleCollectionsSearch = (e) => {
     e.preventDefault()
     setCurrentPage(1)
-    // Usar el valor actual del input de búsqueda
-    const currentSearchTerm = e.target.search.value || ''
-    loadUnpaidClients(1, currentSearchTerm)
+    const currentSearchTerm = (e.target.search && e.target.search.value) || searchTerm || ''
+    if (activeSection === 'cobranzas') loadAllClientsCobranzas(1, currentSearchTerm)
+    else loadUnpaidClients(1, currentSearchTerm)
   }
 
   // Manejar cambio de página
@@ -3876,7 +3955,8 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
   // Manejar cambio de página en cobranzas
   const handleCollectionsPageChange = (page) => {
     setCurrentPage(page)
-    loadUnpaidClients(page, searchTerm)
+    if (activeSection === 'cobranzas') loadAllClientsCobranzas(page, searchTerm)
+    else loadUnpaidClients(page, searchTerm)
   }
 
   // Formatear moneda
@@ -4861,89 +4941,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">Gestión de Cobranzas</h2>
               <div className="text-sm text-gray-600">
-                {pagination.totalClients || clients.length} clientes en cobranzas
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Pagos por áreas de cobranzas</h3>
-                  <DollarSign className="h-5 w-5 text-gold" />
-                </div>
-                {collectionsModuleLoading ? (
-                  <div className="flex items-center justify-center py-6">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-navy"></div>
-                    <span className="ml-3 text-gray-600">Cargando...</span>
-                  </div>
-                ) : collectionsByArea.length === 0 ? (
-                  <p className="text-sm text-gray-500">No hay datos de cobranzas por área.</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Área
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Clientes
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Total
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {collectionsByArea.map((area) => (
-                          <tr key={area.area}>
-                            <td className="px-4 py-2 text-sm text-gray-900">
-                              {area.area}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-500">
-                              {area.count}
-                            </td>
-                            <td className="px-4 py-2 text-sm text-gray-500">
-                              {formatCurrency(area.total)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Clientes nuevos</h3>
-                  <Users className="h-5 w-5 text-gold" />
-                </div>
-                {collectionsModuleLoading ? (
-                  <div className="flex items-center justify-center py-6">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-navy"></div>
-                    <span className="ml-3 text-gray-600">Cargando...</span>
-                  </div>
-                ) : newCollectionClients.length === 0 ? (
-                  <p className="text-sm text-gray-500">No hay clientes nuevos registrados.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {newCollectionClients.map((client) => (
-                      <div key={client.id} className="flex items-center justify-between border border-gray-200 rounded-lg p-3">
-                        <div>
-                          <div className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                            <span>{client.first_name} {client.last_name}</span>
-                            {renderRoleBadge(client)}
-                          </div>
-                          <p className="text-xs text-gray-500">{client.email || 'Sin email'}</p>
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {formatDateString(client.created_at || client.fecha_registro || client.fecha_creacion)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {pagination.totalClients ?? 0} clientes
               </div>
             </div>
 
@@ -4968,11 +4966,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setSearchTerm('')
-                    setCurrentPage(1)
-                    loadUnpaidClients(1, '')
-                  }}
+                  onClick={() => { setSearchTerm(''); setCurrentPage(1); loadAllClientsCobranzas(1, '') }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 >
                   Limpiar
@@ -4980,116 +4974,111 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
               </form>
             </div>
 
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Download className="h-5 w-5 text-red-400" />
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
-                    Atención: Clientes con pagos pendientes
-                  </h3>
-                  <p className="mt-1 text-sm text-red-700">
-                    Los siguientes clientes requieren seguimiento para el cobro de sus servicios.
-                  </p>
-                </div>
+            {/* Módulo de Pago */}
+            <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+              <div className="px-6 py-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3">
+                <h3 className="text-lg font-semibold text-gray-900">Módulo de Pago</h3>
+                <button
+                  type="button"
+                  onClick={handleOpenNewPayment}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  Nuevo pago
+                </button>
               </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <p className="px-6 py-2 text-sm text-gray-600">Registro de todos los clientes (actuales y futuros de admin y contratos).</p>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Cliente
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Email
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Teléfono
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Monto Pendiente
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Fecha Registro
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Acciones
-                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teléfono</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contrato</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {clients.map((client) => (
-                      <tr key={client.id} className="hover:bg-red-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {client.first_name} {client.last_name}
-                          </div>
-                          {client.contract_number && (
-                            <div className="text-xs text-gray-500">
-                              Contrato: {client.contract_number}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {client.email}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {client.phone || '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <span className="text-red-600 font-semibold">
-                            {client.pending_amount || client.agreement_remaining_amount 
-                              ? formatCurrency(client.pending_amount || client.agreement_remaining_amount) 
-                              : client.total_amount 
-                                ? formatCurrency(client.total_amount) 
-                                : 'No especificado'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {formatDateString(client.created_at)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2">
-                            <button 
-                              onClick={() => handleViewClient(client)}
-                              className="text-blue-600 hover:text-blue-900"
-                              title="Ver detalles"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </button>
-                            <div className="relative">
-                              <select
-                                onChange={(e) => handlePaymentAction(client, e.target.value)}
-                                className="text-orange-600 hover:text-orange-900 bg-transparent border-none cursor-pointer"
-                                defaultValue=""
-                              >
-                                <option value="" disabled>Acciones</option>
-                                <option value="payment">Agregar Pago</option>
-                                <option value="agreement">Agregar Convenio</option>
-                              </select>
-                            </div>
-                            <button 
-                              onClick={() => handleEditClient(client)}
-                              className="text-indigo-600 hover:text-indigo-900"
-                              title="Editar cliente"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteClient(client)}
-                              className="text-red-600 hover:text-red-900"
-                              title="Eliminar cliente"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                    {loading ? (
+                      <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">Cargando clientes...</td></tr>
+                    ) : clients.length === 0 ? (
+                      <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">No hay clientes.</td></tr>
+                    ) : (
+                      clients.map((client) => (
+                        <tr key={client.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{client.first_name} {client.last_name}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.email || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.phone || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.contract_number || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onClick={() => handleViewClient(client)} className="text-blue-600 hover:text-blue-900 mr-2" title="Ver"><Eye className="h-4 w-4 inline" /></button>
+                            <select onChange={(e) => handlePaymentAction(client, e.target.value)} className="text-orange-600 hover:text-orange-900 bg-transparent border-none cursor-pointer" defaultValue="">
+                              <option value="" disabled>Acciones</option>
+                              <option value="payment">Agregar Pago</option>
+                              <option value="agreement">Agregar Convenio</option>
+                            </select>
+                            <button onClick={() => handleEditClient(client)} className="text-indigo-600 hover:text-indigo-900 ml-2" title="Editar"><Edit className="h-4 w-4 inline" /></button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Módulo de convenios */}
+            <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+              <div className="px-6 py-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3">
+                <h3 className="text-lg font-semibold text-gray-900">Módulo de convenios</h3>
+                <button
+                  type="button"
+                  onClick={handleOpenNewAgreement}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  Nuevo convenio
+                </button>
+              </div>
+              <p className="px-6 py-2 text-sm text-gray-600">Listado de todos los clientes creados.</p>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teléfono</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contrato</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {loading ? (
+                      <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">Cargando clientes...</td></tr>
+                    ) : clients.length === 0 ? (
+                      <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">No hay clientes.</td></tr>
+                    ) : (
+                      clients.map((client) => (
+                        <tr key={`conv-${client.id}`} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{client.first_name} {client.last_name}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.email || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.phone || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.contract_number || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onClick={() => handleViewClient(client)} className="text-blue-600 hover:text-blue-900 mr-2" title="Ver"><Eye className="h-4 w-4 inline" /></button>
+                            <select onChange={(e) => handlePaymentAction(client, e.target.value)} className="text-orange-600 hover:text-orange-900 bg-transparent border-none cursor-pointer" defaultValue="">
+                              <option value="" disabled>Acciones</option>
+                              <option value="payment">Agregar Pago</option>
+                              <option value="agreement">Agregar Convenio</option>
+                            </select>
+                            <button onClick={() => handleEditClient(client)} className="text-indigo-600 hover:text-indigo-900 ml-2" title="Editar"><Edit className="h-4 w-4 inline" /></button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -5169,16 +5158,6 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                     </nav>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {clients.length === 0 && (
-              <div className="text-center py-12">
-                <Download className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No hay clientes sin pago</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Todos los clientes están al día con sus pagos.
-                </p>
               </div>
             )}
           </div>
@@ -8049,7 +8028,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">FECHA *</label>
                   <input
                     type="date"
-                    value={newClientData.fecha}
+                    value={newClientData.fecha ?? ''}
                     onChange={(e) => handleNewClientChange('fecha', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                     required
@@ -8060,7 +8039,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      value="KMPRY"
+                      value="INB"
                       className="w-20 px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
                       readOnly
                     />
@@ -8087,7 +8066,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                     />
                   </div>
                   <div className="mt-1 text-sm text-gray-500">
-                    Formato: KMPRY {newClientData.contrato_suffix || 'XXX'} {newClientData.contrato_number || '0001'}
+                    Formato: INB {newClientData.contrato_suffix || 'XXX'} {newClientData.contrato_number || '0001'}
                   </div>
                   {clientFormErrors.contrato_suffix && (
                     <p className="mt-1 text-sm text-red-600">{clientFormErrors.contrato_suffix}</p>
@@ -8097,7 +8076,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">NOMBRES *</label>
                   <input
                     type="text"
-                    value={newClientData.nombres}
+                    value={newClientData.nombres ?? ''}
                     onChange={(e) => handleNewClientChange('nombres', e.target.value)}
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                       clientFormErrors.nombres 
@@ -8119,7 +8098,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">APELLIDOS *</label>
                   <input
                     type="text"
-                    value={newClientData.apellidos}
+                    value={newClientData.apellidos ?? ''}
                     onChange={(e) => handleNewClientChange('apellidos', e.target.value)}
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                       clientFormErrors.apellidos 
@@ -8137,7 +8116,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">CÉDULA *</label>
                   <input
                     type="text"
-                    value={newClientData.cedula}
+                    value={newClientData.cedula ?? ''}
                     onChange={(e) => handleNewClientChange('cedula', e.target.value)}
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                       clientFormErrors.cedula 
@@ -8155,7 +8134,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">TELÉFONO *</label>
                   <input
                     type="tel"
-                    value={newClientData.telefono}
+                    value={newClientData.telefono ?? ''}
                     onChange={(e) => handleNewClientChange('telefono', e.target.value)}
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                       clientFormErrors.telefono 
@@ -8178,7 +8157,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <input
                     type="number"
                     min="0"
-                    value={newClientData.noches}
+                    value={newClientData.noches ?? 0}
                     onChange={(e) => handleNewClientChange('noches', parseInt(e.target.value) || 0)}
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                       clientFormErrors.noches 
@@ -8210,7 +8189,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                     <input
                       type="number"
                       min="0"
-                      value={newClientData.anos}
+                      value={newClientData.anos ?? 0}
                       onChange={(e) => handleNewClientChange('anos', parseInt(e.target.value) || 0)}
                       className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                         clientFormErrors.anos 
@@ -8229,7 +8208,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">BONO INTERNACIONAL *</label>
                   <select
-                    value={newClientData.bono_internacional}
+                    value={newClientData.bono_internacional ?? 'No'}
                     onChange={(e) => handleNewClientChange('bono_internacional', e.target.value)}
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                       clientFormErrors.bono_internacional 
@@ -8249,7 +8228,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">PAGO MIXTO</label>
                   <select
-                    value={newClientData.pago_mixto}
+                    value={newClientData.pago_mixto ?? 'No'}
                     onChange={(e) => handleNewClientChange('pago_mixto', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                   >
@@ -8265,21 +8244,18 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">DATAFAST</label>
                     <select
-                      value={newClientData.datafast}
+                      value={newClientData.datafast ?? ''}
                       onChange={(e) => handleNewClientChange('datafast', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                     >
                       <option value="">Seleccionar...</option>
-                      <option value="KMP">KMP</option>
-                      <option value="RCC">RCC</option>
-                      <option value="Kempery">Kempery</option>
-                      <option value="Payphone Zindy">Payphone Zindy</option>
+                      <option value="Innovation Bussines">Innovation Bussines</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">TIPO DE TARJETA</label>
                     <select
-                      value={newClientData.tipo_tarjeta}
+                      value={newClientData.tipo_tarjeta ?? ''}
                       onChange={(e) => handleNewClientChange('tipo_tarjeta', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                     >
@@ -8298,7 +8274,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                       type="number"
                       step="0.01"
                       min="0"
-                      value={newClientData.total_venta}
+                      value={newClientData.total_venta ?? 0}
                       onChange={(e) => handleNewClientChange('total_venta', parseFloat(e.target.value) || 0)}
                       className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                         clientFormErrors.total_venta 
@@ -8346,7 +8322,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">FORMA DE PAGO</label>
                     <select
-                      value={newClientData.forma_pago}
+                      value={newClientData.forma_pago ?? ''}
                       onChange={(e) => handleNewClientChange('forma_pago', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                     >
@@ -8361,7 +8337,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">TIEMPO</label>
                       <select
-                        value={newClientData.tiempo_meses}
+                        value={newClientData.tiempo_meses ?? 0}
                         onChange={(e) => handleNewClientChange('tiempo_meses', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                       >
@@ -8388,7 +8364,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                     <div className="mb-4">
                       <label className="block text-sm font-medium text-gray-700 mb-2">Cantidad de Tarjetas</label>
                       <select
-                        value={newClientData.cantidad_tarjetas}
+                        value={newClientData.cantidad_tarjetas ?? 1}
                         onChange={(e) => handleNewClientChange('cantidad_tarjetas', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                       >
@@ -8409,7 +8385,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2">DataFast</label>
                               <select
-                                value={tarjeta.datafast}
+                                value={tarjeta.datafast ?? ''}
                                 onChange={(e) => handleTarjetaChange(index, 'datafast', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                               >
@@ -8423,7 +8399,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Tarjeta</label>
                               <select
-                                value={tarjeta.tipo}
+                                value={tarjeta.tipo ?? ''}
                                 onChange={(e) => handleTarjetaChange(index, 'tipo', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                               >
@@ -8441,7 +8417,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                                 type="number"
                                 step="0.01"
                                 min="0"
-                                value={tarjeta.monto}
+                                value={tarjeta.monto ?? 0}
                                 onChange={(e) => handleTarjetaChange(index, 'monto', e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                                 placeholder="0.00"
@@ -8474,7 +8450,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <input
                     type="number"
                     step="0.01"
-                    value={newClientData.iva.toFixed(2)}
+                    value={(newClientData.iva ?? 0).toFixed(2)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
                     readOnly
                   />
@@ -8484,7 +8460,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <input
                     type="number"
                     step="0.01"
-                    value={newClientData.neto.toFixed(2)}
+                    value={(newClientData.neto ?? 0).toFixed(2)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
                     readOnly
                   />
@@ -8493,7 +8469,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">CORREO ELECTRÓNICO</label>
                   <input
                     type="email"
-                    value={newClientData.correo_electronico}
+                    value={newClientData.correo_electronico ?? ''}
                     onChange={(e) => handleNewClientChange('correo_electronico', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                     placeholder="Ej: cliente@email.com"
@@ -8507,7 +8483,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">LINNER</label>
                   <input
                     type="text"
-                    value={newClientData.linner}
+                    value={newClientData.linner ?? ''}
                     onChange={(e) => handleNewClientChange('linner', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                     placeholder="Ej: María González"
@@ -8517,7 +8493,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">CLOSER</label>
                   <input
                     type="text"
-                    value={newClientData.closer}
+                    value={newClientData.closer ?? ''}
                     onChange={(e) => handleNewClientChange('closer', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                     placeholder="Ej: Carlos López"
@@ -8531,7 +8507,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                   Pagaré
                 </label>
                 <select
-                  value={newClientData.pagare}
+                  value={newClientData.pagare ?? 'No'}
                   onChange={(e) => handleNewClientChange('pagare', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                 >
@@ -8550,7 +8526,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                       </label>
                       <input
                         type="date"
-                        value={newClientData.fecha_pagare}
+                        value={newClientData.fecha_pagare ?? ''}
                         onChange={(e) => handleNewClientChange('fecha_pagare', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                         required={newClientData.pagare === 'Si'}
@@ -8564,7 +8540,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                         type="number"
                         step="0.01"
                         min="0"
-                        value={newClientData.monto_pagare}
+                        value={newClientData.monto_pagare ?? 0}
                         onChange={(e) => handleNewClientChange('monto_pagare', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                         placeholder="0.00"
@@ -8580,7 +8556,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                       <input
                         type="number"
                         min="1"
-                        value={newClientData.cantidad_cuotas}
+                        value={newClientData.cantidad_cuotas ?? 1}
                         onChange={(e) => handleNewClientChange('cantidad_cuotas', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                         required={newClientData.pagare === 'Si'}
@@ -8591,7 +8567,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                       <input
                         type="number"
                         min="0"
-                        value={newClientData.cuotas_asumidas}
+                        value={newClientData.cuotas_asumidas ?? 0}
                         onChange={(e) => handleNewClientChange('cuotas_asumidas', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                         required={newClientData.pagare === 'Si'}
@@ -8603,7 +8579,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                         type="number"
                         step="0.01"
                         min="0"
-                        value={newClientData.valor_cuota}
+                        value={newClientData.valor_cuota ?? 0}
                         readOnly
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none"
                       />
@@ -8614,7 +8590,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
                         type="number"
                         step="0.01"
                         min="0"
-                        value={newClientData.total_pagare}
+                        value={newClientData.total_pagare ?? 0}
                         readOnly
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none"
                       />
@@ -8627,7 +8603,7 @@ const AdminPanel = ({ initialSection, panelTitle = 'Admin Panel' }) => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">OBSERVACIONES</label>
                 <textarea
-                  value={newClientData.observaciones}
+                  value={newClientData.observaciones ?? ''}
                   onChange={(e) => handleNewClientChange('observaciones', e.target.value)}
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
@@ -10754,7 +10730,7 @@ ${bookingFormData.google_maps_link ? `• Ubicación: ${bookingFormData.google_m
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Registrar Pago - {selectedClientForPayment?.first_name} {selectedClientForPayment?.last_name}
+              {selectedClientForPayment ? `Registrar Pago - ${selectedClientForPayment.first_name} ${selectedClientForPayment.last_name}` : 'Nuevo pago'}
             </h3>
 
             {paymentError && (
@@ -10764,21 +10740,49 @@ ${bookingFormData.google_maps_link ? `• Ubicación: ${bookingFormData.google_m
             )}
 
             <form className="space-y-4">
-              {/* Información del cliente */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Información del Cliente</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                  <div><span className="font-medium">Nombre:</span> {selectedClientForPayment?.first_name} {selectedClientForPayment?.last_name}</div>
-                  <div><span className="font-medium">Contrato:</span> {selectedClientForPayment?.contract_number}</div>
-                  <div><span className="font-medium">Email:</span> {selectedClientForPayment?.email}</div>
-                  <div><span className="font-medium">Monto Total:</span> ${selectedClientForPayment?.total_amount || 'No especificado'}</div>
+              {/* Elegir cliente (cuando se abre desde "Nuevo pago") */}
+              {!selectedClientForPayment && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Elegir cliente *</label>
+                  <select
+                    value={paymentFormData.client_id}
+                    onChange={(e) => {
+                      const id = e.target.value ? parseInt(e.target.value, 10) : ''
+                      const list = allClientsCobranzas.length ? allClientsCobranzas : clients
+                      const client = list.find(c => c.id === id)
+                      if (client) {
+                        setSelectedClientForPayment(client)
+                        setPaymentFormData(prev => ({ ...prev, client_id: client.id, contract_number: client.contract_number || '' }))
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
+                    required
+                  >
+                    <option value="">Seleccionar cliente...</option>
+                    {(allClientsCobranzas.length ? allClientsCobranzas : clients).map((c) => (
+                      <option key={c.id} value={c.id}>{c.first_name} {c.last_name} {c.contract_number ? ` - ${c.contract_number}` : ''}</option>
+                    ))}
+                  </select>
                 </div>
-              </div>
+              )}
 
-              {/* Monto del pago */}
+              {/* Información del cliente (solo si ya está elegido) */}
+              {selectedClientForPayment && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-2">Información del Cliente</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div><span className="font-medium">Nombre:</span> {selectedClientForPayment.first_name} {selectedClientForPayment.last_name}</div>
+                    <div><span className="font-medium">Contrato:</span> {selectedClientForPayment.contract_number}</div>
+                    <div><span className="font-medium">Email:</span> {selectedClientForPayment.email}</div>
+                    <div><span className="font-medium">Monto Total:</span> ${selectedClientForPayment.total_amount || 'No especificado'}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Valor del pago */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Monto del Pago *
+                  Valor del pago *
                 </label>
                 <input
                   type="number"
@@ -10909,9 +10913,10 @@ ${bookingFormData.google_maps_link ? `• Ubicación: ${bookingFormData.google_m
                 <button
                   type="button"
                   onClick={handleCreatePayment}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                  disabled={!paymentFormData.client_id}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Registrar Pago
+                  Registrar pago
                 </button>
               </div>
             </form>
@@ -10924,7 +10929,7 @@ ${bookingFormData.google_maps_link ? `• Ubicación: ${bookingFormData.google_m
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Crear Convenio de Pago - {selectedClientForAgreement?.first_name} {selectedClientForAgreement?.last_name}
+              {selectedClientForAgreement ? `Convenio - ${selectedClientForAgreement.first_name} ${selectedClientForAgreement.last_name}` : 'Nuevo convenio'}
             </h3>
 
             {agreementError && (
@@ -10934,21 +10939,53 @@ ${bookingFormData.google_maps_link ? `• Ubicación: ${bookingFormData.google_m
             )}
 
             <form className="space-y-4">
-              {/* Información del cliente */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Información del Cliente</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                  <div><span className="font-medium">Nombre:</span> {selectedClientForAgreement?.first_name} {selectedClientForAgreement?.last_name}</div>
-                  <div><span className="font-medium">Contrato:</span> {selectedClientForAgreement?.contract_number}</div>
-                  <div><span className="font-medium">Email:</span> {selectedClientForAgreement?.email}</div>
-                  <div><span className="font-medium">Monto Total:</span> ${selectedClientForAgreement?.total_amount || 'No especificado'}</div>
+              {/* Elegir cliente (cuando se abre desde "Nuevo convenio") */}
+              {!selectedClientForAgreement && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Elegir cliente *</label>
+                  <select
+                    value={agreementFormData.client_id}
+                    onChange={(e) => {
+                      const id = e.target.value ? parseInt(e.target.value, 10) : ''
+                      const list = allClientsCobranzas.length ? allClientsCobranzas : clients
+                      const client = list.find(c => c.id === id)
+                      if (client) {
+                        setSelectedClientForAgreement(client)
+                        setAgreementFormData(prev => ({
+                          ...prev,
+                          client_id: client.id,
+                          contract_number: client.contract_number || '',
+                          total_amount: client.total_amount || prev.total_amount,
+                          installment_amount: client.total_amount || prev.installment_amount
+                        }))
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
+                    required
+                  >
+                    <option value="">Seleccionar cliente...</option>
+                    {(allClientsCobranzas.length ? allClientsCobranzas : clients).map((c) => (
+                      <option key={c.id} value={c.id}>{c.first_name} {c.last_name} {c.contract_number ? ` - ${c.contract_number}` : ''}</option>
+                    ))}
+                  </select>
                 </div>
-              </div>
+              )}
 
-              {/* Monto total */}
+              {selectedClientForAgreement && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-2">Información del Cliente</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div><span className="font-medium">Nombre:</span> {selectedClientForAgreement.first_name} {selectedClientForAgreement.last_name}</div>
+                    <div><span className="font-medium">Contrato:</span> {selectedClientForAgreement.contract_number}</div>
+                    <div><span className="font-medium">Email:</span> {selectedClientForAgreement.email}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Monto acordado */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Monto Total del Convenio *
+                  Monto acordado *
                 </label>
                 <input
                   type="number"
@@ -10991,10 +11028,27 @@ ${bookingFormData.google_maps_link ? `• Ubicación: ${bookingFormData.google_m
                 />
               </div>
 
-              {/* Fecha de inicio */}
+              {/* Forma de pago */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Forma de pago</label>
+                <select
+                  value={agreementFormData.payment_method}
+                  onChange={(e) => handleAgreementFormChange('payment_method', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="efectivo">Efectivo</option>
+                  <option value="transferencia">Transferencia</option>
+                  <option value="tarjeta">Tarjeta</option>
+                  <option value="cheque">Cheque</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+
+              {/* Fecha de nuevo pago */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fecha de Inicio *
+                  Fecha de nuevo pago *
                 </label>
                 <input
                   type="date"
@@ -11005,7 +11059,7 @@ ${bookingFormData.google_maps_link ? `• Ubicación: ${bookingFormData.google_m
                 />
               </div>
 
-              {/* Fecha de fin */}
+              {/* Fecha de fin (calculada) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Fecha de Fin (calculada automáticamente)
@@ -11019,17 +11073,17 @@ ${bookingFormData.google_maps_link ? `• Ubicación: ${bookingFormData.google_m
                 />
               </div>
 
-              {/* Notas */}
+              {/* Observación */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Notas del Convenio
+                  Observación
                 </label>
                 <textarea
                   value={agreementFormData.notes}
                   onChange={(e) => handleAgreementFormChange('notes', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
                   rows="3"
-                  placeholder="Términos y condiciones del convenio..."
+                  placeholder="Observaciones del convenio..."
                 />
               </div>
 
@@ -11045,9 +11099,10 @@ ${bookingFormData.google_maps_link ? `• Ubicación: ${bookingFormData.google_m
                 <button
                   type="button"
                   onClick={handleCreateAgreement}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+                  disabled={!agreementFormData.client_id}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Crear Convenio
+                  Registrar convenio
                 </button>
               </div>
             </form>

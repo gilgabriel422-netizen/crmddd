@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 export default function SoporteMensajeCliente({ clienteId }) {
   const [mensaje, setMensaje] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -14,7 +16,7 @@ export default function SoporteMensajeCliente({ clienteId }) {
   useEffect(() => {
     const cargarMensajes = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/mensajes/${clienteId}`); // <-- URL ajustada
+        const res = await fetch(`${API_URL}/mensajes/${clienteId}`);
         const data = await res.json();
         setMensajes(data);
       } catch (err) {
@@ -31,7 +33,7 @@ export default function SoporteMensajeCliente({ clienteId }) {
     setError('');
     setExito('');
     try {
-      const res = await fetch('http://localhost:5000/api/mensajes', { // <-- URL ajustada
+      const res = await fetch(`${API_URL}/mensajes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

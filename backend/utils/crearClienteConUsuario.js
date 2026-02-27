@@ -8,13 +8,28 @@ const pool = require('../config/pg-pool');
  */
 async function crearClienteConUsuario(clienteData, rolCliente = 'blue') {
   const client = await pool.connect();
-  
+
   try {
     console.log('\n📝 Iniciando creación de cliente con usuario...');
     console.log('📊 Datos recibidos:', JSON.stringify(clienteData, null, 2));
-    
+
     await client.query('BEGIN');
     console.log('✅ Transacción iniciada');
+
+    // =========================
+    // ✅ FIX: si no viene contract_number, generarlo aquí
+    // =========================
+    let contractNumber = (clienteData.contract_number || '').trim();
+    if (!contractNumber) {
+      const fecha = new Date();
+      const year = fecha.getFullYear().toString().slice(-2);
+      const month = String(fecha.getMonth() + 1).padStart(2, '0');
+      const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+      contractNumber = `CT${year}${month}-${random}`;
+    }
+    // guardarlo en clienteData para que el INSERT y el usuario usen el mismo
+    clienteData.contract_number = contractNumber;
+    // =========================
 
     // 1. Crear el cliente
     const resultCliente = await client.query(
@@ -84,10 +99,10 @@ async function crearClienteConUsuario(clienteData, rolCliente = 'blue') {
       throw new Error('La cédula es requerida para crear las credenciales del usuario');
     }
 
-    // Email/login: número de contrato normalizado + dominio (el cliente ingresa con número de contrato y cédula)
+    // Email/login: número de contrato normalizado + dominio
     const emailUsuario = `${numeroContratoNormalizado}@cliente.crm.com`;
-    
-    // Contraseña: la cédula del cliente (sin hashear, texto plano)
+
+    // Contraseña: la cédula del cliente (texto plano)
     const passwordPlain = cedula;
 
     console.log(`📧 Email a crear: ${emailUsuario}`);
@@ -97,7 +112,7 @@ async function crearClienteConUsuario(clienteData, rolCliente = 'blue') {
     const resultUsuario = await client.query(
       `INSERT INTO usuarios (nombre, email, password, rol, activo, fecha_creacion)
        VALUES ($1, $2, $3, $4, $5, NOW())
-       ON CONFLICT (email) DO UPDATE 
+       ON CONFLICT (email) DO UPDATE
        SET password = $3, rol = $4, activo = $5
        RETURNING id, nombre, email, rol`,
       [nombreCliente, emailUsuario, passwordPlain, rolCliente, true]
@@ -114,7 +129,8 @@ async function crearClienteConUsuario(clienteData, rolCliente = 'blue') {
     );
 
     // 5. Crear un contrato inicial para el cliente (usar número de contrato del cliente, no uno nuevo)
-    const numeroContratoViaje = (clienteData.contract_number || '').trim() || `CT${new Date().getFullYear().toString().slice(-2)}${String(new Date().getMonth() + 1).padStart(2, '0')}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+    // ✅ aquí ya no necesitas fallback, porque contract_number ya existe siempre
+    const numeroContratoViaje = (clienteData.contract_number || '').trim();
     const valorContrato = Number(clienteData.total_amount) || 0;
 
     const resultContrato = await client.query(
@@ -125,7 +141,9 @@ async function crearClienteConUsuario(clienteData, rolCliente = 'blue') {
       [clienteId, numeroContratoViaje, new Date(), valorContrato, 'pendiente', 'admin']
     );
 
-    console.log(`✅ Contrato creado con ID: ${resultContrato.rows[0].id}, Número: ${resultContrato.rows[0].numero_contrato}`);
+    console.log(
+      `✅ Contrato creado con ID: ${resultContrato.rows[0].id}, Número: ${resultContrato.rows[0].numero_contrato}`
+    );
 
     await client.query('COMMIT');
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext'
 import NotificationBell from '../components/NotificationBell'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const soporteId = 1; // Cambia por el ID real del usuario soporte
 
 export default function SoportePanel() {
@@ -17,7 +18,7 @@ export default function SoportePanel() {
   useEffect(() => {
     const cargarClientes = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/clientes');
+        const res = await fetch(`${API_URL}/clientes`);
         const data = await res.json();
         // Asegura que siempre sea un array
         setClientes(Array.isArray(data) ? data : data.clientes || []);
@@ -34,7 +35,7 @@ export default function SoportePanel() {
     if (!clienteSeleccionado) return;
     const cargarMensajes = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/mensajes/${clienteSeleccionado.id}`);
+        const res = await fetch(`${API_URL}/mensajes/${clienteSeleccionado.id}`);
         const data = await res.json();
         setMensajes(data);
       } catch (err) {
@@ -50,7 +51,7 @@ export default function SoportePanel() {
     setError('');
     setExito('');
     try {
-      const res = await fetch('http://localhost:5000/api/mensajes', {
+      const res = await fetch(`${API_URL}/mensajes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

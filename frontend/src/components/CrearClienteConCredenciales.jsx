@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { Copy, Check, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import axios from 'axios'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const CrearClienteConCredenciales = ({ isOpen, onClose, onSuccess }) => {
   const [step, setStep] = useState('form') // 'form' o 'credenciales'
   const [loading, setLoading] = useState(false)
@@ -53,7 +55,7 @@ const CrearClienteConCredenciales = ({ isOpen, onClose, onSuccess }) => {
     setLoading(true)
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/clientes/crear-con-usuario',
+        `${API_URL}/clientes/crear-con-usuario`,
         {
           clienteData: {
             first_name: formData.first_name,

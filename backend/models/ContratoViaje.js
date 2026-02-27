@@ -1,9 +1,6 @@
 const pool = require('../config/pg-pool');
 
 class ContratoViaje {
-  /**
-   * Generar número único de contrato
-   */
   static generarNumeroContrato() {
     const fecha = new Date();
     const year = fecha.getFullYear().toString().slice(-2);
@@ -12,9 +9,6 @@ class ContratoViaje {
     return `CT${year}${month}-${random}`;
   }
 
-  /**
-   * Obtener todos los contratos
-   */
   static async getAll() {
     try {
       const result = await pool.query(`
@@ -33,9 +27,6 @@ class ContratoViaje {
     }
   }
 
-  /**
-   * Obtener contrato por ID
-   */
   static async getById(id) {
     try {
       const result = await pool.query(
@@ -56,9 +47,6 @@ class ContratoViaje {
     }
   }
 
-  /**
-   * Obtener contratos de un cliente
-   */
   static async getByClienteId(clienteId) {
     try {
       const result = await pool.query(
@@ -77,9 +65,6 @@ class ContratoViaje {
     }
   }
 
-  /**
-   * Buscar por número de contrato
-   */
   static async getByNumeroContrato(numeroContrato) {
     try {
       const result = await pool.query(
@@ -99,92 +84,146 @@ class ContratoViaje {
 
   /**
    * Crear nuevo contrato completo
+   * ✅ Inserta cliente_id + nuevos campos (pagaré, comercial, snapshot cliente) + datos_completos JSON.
    */
   static async create(contratoData) {
-    const {
-      cliente_id,
-      autorizacion_pago_id,
-      fecha_contrato,
-      valor_contrato,
-      anos_contrato,
-      tarjeta_y_banco,
-      numero_noches,
-      pagare_numero,
-      pagare_fecha_vencimiento,
-      estadia_internacional,
-      estadia_nacional,
-      cortesias_por_asistencia,
-      ofrecimientos_adicionales,
-      aceptacion_cliente,
-      datos_completos, // JSON con toda la plantilla
-      creado_por,
-      metadata = {}
-    } = contratoData;
-
     try {
-      // Generar número único de contrato
-      let numero_contrato = this.generarNumeroContrato();
-      let intentos = 0;
-      
-      // Verificar que el número sea único
-      while (intentos < 10) {
-        const existe = await this.getByNumeroContrato(numero_contrato);
-        if (!existe) break;
-        numero_contrato = this.generarNumeroContrato();
-        intentos++;
+      console.log('📝 Creando contrato con datos:', contratoData);
+
+      const {
+        numero_contrato,
+        fecha_contrato,
+        valor_contrato,
+        creado_por,
+        estado = 'pendiente',
+        cliente_id,
+        datos_completos,
+
+        // nuevos
+        valor_pagado = 0,
+        saldo_pendiente = 0,
+        pagare_numero = null,
+        pagare_fecha_vencimiento = null,
+        pagare_total = 0,
+        pagare_cuotas = 0,
+        pagare_valor_cuota = 0,
+
+        vendedor_nombre = null,
+        jefe_sala = null,
+        codigo_sala = null,
+
+        cliente_email = null,
+        cliente_direccion = null,
+        cliente_fecha_nacimiento = null,
+        cliente_edad = null
+      } = contratoData;
+
+      const clienteId = cliente_id ?? contratoData.clienteId;
+
+      if (!clienteId) {
+        const err = new Error('cliente_id es requerido');
+        err.status = 400;
+        throw err;
       }
 
-      const result = await pool.query(
-        `INSERT INTO contratos_viajes (
-          cliente_id, autorizacion_pago_id, numero_contrato, fecha_contrato,
-          valor_contrato, anos_contrato, tarjeta_y_banco, numero_noches,
-          pagare_numero, pagare_fecha_vencimiento,
-          estadia_internacional, estadia_nacional,
-          cortesias_por_asistencia, ofrecimientos_adicionales,
-          aceptacion_cliente, datos_completos, creado_por, metadata, estado
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
-        RETURNING *`,
-        [
+      const numContrato = numero_contrato || this.generarNumeroContrato();
+
+      const query = `
+        INSERT INTO contratos_viajes (
+          numero_contrato, 
+          fecha_contrato, 
+          valor_contrato, 
+          creado_por, 
+          estado,
           cliente_id,
-          autorizacion_pago_id,
-          numero_contrato,
-          fecha_contrato || new Date(),
-          valor_contrato,
-          anos_contrato,
-          tarjeta_y_banco,
-          numero_noches,
+          datos_completos,
+
+          valor_pagado,
+          saldo_pendiente,
           pagare_numero,
           pagare_fecha_vencimiento,
-          JSON.stringify(estadia_internacional || {}),
-          JSON.stringify(estadia_nacional || {}),
-          cortesias_por_asistencia,
-          ofrecimientos_adicionales,
-          JSON.stringify(aceptacion_cliente || {}),
-          JSON.stringify(datos_completos || {}),
-          creado_por,
-          JSON.stringify(metadata),
-          'pendiente'
-        ]
-      );
+          pagare_total,
+          pagare_cuotas,
+          pagare_valor_cuota,
 
+          vendedor_nombre,
+          jefe_sala,
+          codigo_sala,
+
+          cliente_email,
+          cliente_direccion,
+          cliente_fecha_nacimiento,
+          cliente_edad
+        ) VALUES (
+          $1,$2,$3,$4,$5,$6,$7,
+          $8,$9,$10,$11,$12,$13,$14,
+          $15,$16,$17,
+          $18,$19,$20,$21
+        )
+        RETURNING *
+      `;
+
+      const result = await pool.query(query, [
+        numContrato,
+        fecha_contrato || new Date(),
+        valor_contrato || 0,
+        creado_por || 'sistema',
+        estado,
+        clienteId,
+        datos_completos ? JSON.stringify(datos_completos) : null,
+
+        Number(valor_pagado) || 0,
+        Number(saldo_pendiente) || 0,
+        pagare_numero,
+        pagare_fecha_vencimiento,
+        Number(pagare_total) || 0,
+        Number(pagare_cuotas) || 0,
+        Number(pagare_valor_cuota) || 0,
+
+        vendedor_nombre,
+        jefe_sala,
+        codigo_sala,
+
+        cliente_email,
+        cliente_direccion,
+        cliente_fecha_nacimiento,
+        cliente_edad
+      ]);
+
+      console.log('✅ Contrato creado exitosamente:', result.rows[0]);
       return result.rows[0];
     } catch (error) {
-      console.error('Error en create:', error);
+      console.error('❌ Error en create:', error.message);
       throw error;
     }
   }
 
-  /**
-   * Actualizar contrato
-   */
   static async update(id, contratoData) {
     const {
       valor_contrato,
       anos_contrato,
       tarjeta_y_banco,
       numero_noches,
+
       pagare_numero,
       pagare_fecha_vencimiento,
+
+      // nuevos
+      valor_pagado,
+      saldo_pendiente,
+      pagare_total,
+      pagare_cuotas,
+      pagare_valor_cuota,
+
+      vendedor_nombre,
+      jefe_sala,
+      codigo_sala,
+
+      cliente_email,
+      cliente_direccion,
+      cliente_fecha_nacimiento,
+      cliente_edad,
+
       estadia_internacional,
       estadia_nacional,
       cortesias_por_asistencia,
@@ -202,25 +241,59 @@ class ContratoViaje {
              anos_contrato = COALESCE($2, anos_contrato),
              tarjeta_y_banco = COALESCE($3, tarjeta_y_banco),
              numero_noches = COALESCE($4, numero_noches),
+
              pagare_numero = COALESCE($5, pagare_numero),
              pagare_fecha_vencimiento = COALESCE($6, pagare_fecha_vencimiento),
-             estadia_internacional = COALESCE($7, estadia_internacional),
-             estadia_nacional = COALESCE($8, estadia_nacional),
-             cortesias_por_asistencia = COALESCE($9, cortesias_por_asistencia),
-             ofrecimientos_adicionales = COALESCE($10, ofrecimientos_adicionales),
-             aceptacion_cliente = COALESCE($11, aceptacion_cliente),
-             datos_completos = COALESCE($12, datos_completos),
-             estado = COALESCE($13, estado),
-             metadata = COALESCE($14, metadata)
-         WHERE id = $15 
+
+             valor_pagado = COALESCE($7, valor_pagado),
+             saldo_pendiente = COALESCE($8, saldo_pendiente),
+             pagare_total = COALESCE($9, pagare_total),
+             pagare_cuotas = COALESCE($10, pagare_cuotas),
+             pagare_valor_cuota = COALESCE($11, pagare_valor_cuota),
+
+             vendedor_nombre = COALESCE($12, vendedor_nombre),
+             jefe_sala = COALESCE($13, jefe_sala),
+             codigo_sala = COALESCE($14, codigo_sala),
+
+             cliente_email = COALESCE($15, cliente_email),
+             cliente_direccion = COALESCE($16, cliente_direccion),
+             cliente_fecha_nacimiento = COALESCE($17, cliente_fecha_nacimiento),
+             cliente_edad = COALESCE($18, cliente_edad),
+
+             estadia_internacional = COALESCE($19, estadia_internacional),
+             estadia_nacional = COALESCE($20, estadia_nacional),
+             cortesias_por_asistencia = COALESCE($21, cortesias_por_asistencia),
+             ofrecimientos_adicionales = COALESCE($22, ofrecimientos_adicionales),
+             aceptacion_cliente = COALESCE($23, aceptacion_cliente),
+             datos_completos = COALESCE($24, datos_completos),
+             estado = COALESCE($25, estado),
+             metadata = COALESCE($26, metadata)
+         WHERE id = $27
          RETURNING *`,
         [
           valor_contrato,
           anos_contrato,
           tarjeta_y_banco,
           numero_noches,
+
           pagare_numero,
           pagare_fecha_vencimiento,
+
+          valor_pagado,
+          saldo_pendiente,
+          pagare_total,
+          pagare_cuotas,
+          pagare_valor_cuota,
+
+          vendedor_nombre,
+          jefe_sala,
+          codigo_sala,
+
+          cliente_email,
+          cliente_direccion,
+          cliente_fecha_nacimiento,
+          cliente_edad,
+
           estadia_internacional ? JSON.stringify(estadia_internacional) : null,
           estadia_nacional ? JSON.stringify(estadia_nacional) : null,
           cortesias_por_asistencia,
@@ -240,9 +313,6 @@ class ContratoViaje {
     }
   }
 
-  /**
-   * Firmar contrato (cliente acepta)
-   */
   static async firmar(id, datosAceptacion) {
     const { firma, nombre, fecha } = datosAceptacion;
 
@@ -269,9 +339,6 @@ class ContratoViaje {
     }
   }
 
-  /**
-   * Activar contrato
-   */
   static async activar(id) {
     try {
       const result = await pool.query(
@@ -289,9 +356,6 @@ class ContratoViaje {
     }
   }
 
-  /**
-   * Cancelar contrato
-   */
   static async cancelar(id, motivo) {
     try {
       const result = await pool.query(
@@ -310,9 +374,6 @@ class ContratoViaje {
     }
   }
 
-  /**
-   * Eliminar contrato
-   */
   static async delete(id) {
     try {
       const result = await pool.query(
@@ -326,9 +387,6 @@ class ContratoViaje {
     }
   }
 
-  /**
-   * Obtener contratos por estado
-   */
   static async getByEstado(estado) {
     try {
       const result = await pool.query(
@@ -347,9 +405,6 @@ class ContratoViaje {
     }
   }
 
-  /**
-   * Obtener estadísticas de contratos
-   */
   static async getEstadisticas() {
     try {
       const result = await pool.query(`

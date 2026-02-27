@@ -75,7 +75,7 @@ const contratoController = {
       console.error('Error al obtener contratos del cliente:', error);
       res.status(500).json({
         success: false,
-        message: 'Error al obtener contratos del cliente',
+       message: 'Error al obtener contratos del cliente',
         error: error.message
       });
     }
@@ -83,98 +83,183 @@ const contratoController = {
 
   /**
    * Crear contrato completo desde plantilla
+   * ✅ Incluye pagaré, snapshot cliente, comercial/sala y datos_completos enriquecido.
    */
   async crearDesdePlantilla(req, res) {
     try {
+      console.log('✅ POST /contratos/plantilla recibido');
+
       const plantilla = req.body;
 
-      // 1. Validar cliente existe o crearlo
-      let cliente_id = plantilla.cliente_id;
-      
-      if (!cliente_id && plantilla.cliente) {
-        // Crear cliente si no existe
-        const clienteData = {
-          first_name: plantilla.cliente.nombres_completos?.split(' ')[0] || '',
-          last_name: plantilla.cliente.nombres_completos?.split(' ').slice(1).join(' ') || '',
-          document_number: plantilla.cliente.cedula,
-          phone: plantilla.cliente.telefono,
-          ciudad: plantilla.cliente.ciudad,
-          pais: plantilla.cliente.pais,
-          status: 'activo'
-        };
-        
-        const clienteCreado = await Cliente.create(clienteData);
-        cliente_id = clienteCreado.id;
-      }
+      // ===== Helpers
+      const toNum = (v, def = 0) => {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : def;
+      };
 
-      // 2. Crear tarjeta si existe
-      let tarjeta_id = null;
-      if (plantilla.tarjeta && plantilla.tarjeta.numero_tarjeta) {
-        const tarjetaCreada = await Tarjeta.create({
-          cliente_id,
-          nombre_tarjetahabiente: plantilla.tarjeta.nombre_tarjetahabiente,
-          tipo_tarjeta: plantilla.tarjeta.tipo_tarjeta,
-          numero_tarjeta: plantilla.tarjeta.numero_tarjeta,
-          fecha_caducidad: plantilla.tarjeta.fecha_caducidad,
-          es_principal: true
+      const calcularEdad = (fechaISO) => {
+        if (!fechaISO) return null;
+        const n = new Date(fechaISO);
+        if (Number.isNaN(n.getTime())) return null;
+        const hoy = new Date();
+        let edad = hoy.getFullYear() - n.getFullYear();
+        const m = hoy.getMonth() - n.getMonth();
+        if (m < 0 || (m === 0 && hoy.getDate() < n.getDate())) edad--;
+        return edad;
+      };
+
+      // ===== 1) cliente_id robusto
+      const rawClienteId =
+        plantilla?.cliente_id ??
+        plantilla?.contrato?.cliente_id ??
+        plantilla?.cliente?.id ??
+        plantilla?.clienteId ??
+        plantilla?.clienteID;
+
+      const cliente_id = Number(rawClienteId);
+
+      if (!cliente_id) {
+        return res.status(400).json({
+          success: false,
+          message: 'cliente_id es requerido'
         });
-        tarjeta_id = tarjetaCreada.id;
       }
 
-      // 3. Crear autorización de pago
-      let autorizacion_pago_id = null;
-      if (plantilla.autorizacion) {
-        const autorizacionCreada = await AutorizacionPago.create({
-          cliente_id,
-          tarjeta_id,
-          empresa_razon_social: plantilla.autorizacion.empresa?.razon_social,
-          empresa_nombre_comercial: plantilla.autorizacion.empresa?.nombre_comercial,
-          empresa_ruc: plantilla.autorizacion.empresa?.ruc,
-          monto_numerico: plantilla.autorizacion.valor?.monto_numerico || 0,
-          monto_letras: plantilla.autorizacion.valor?.monto_letras,
-          motivo: plantilla.autorizacion.motivo,
-          voucher_lote: plantilla.autorizacion.voucher?.lote,
-          voucher_referencia: plantilla.autorizacion.voucher?.referencia,
-          voucher_aprobacion: plantilla.autorizacion.voucher?.aprobacion,
-          voucher_modalidad: plantilla.autorizacion.voucher?.modalidad,
-          fecha_autorizacion: plantilla.autorizacion.fecha_autorizacion,
-          estado: 'pendiente',
-          metadata: plantilla.metadata || {}
+      // ===== 2) Validar cliente existe
+      const clienteDB = await Cliente.getById(cliente_id);
+      if (!clienteDB) {
+        return res.status(400).json({
+          success: false,
+          message: 'cliente_id no existe'
         });
-        autorizacion_pago_id = autorizacionCreada.id;
       }
 
-      // 4. Crear contrato
+      // ===== 3) Pagaré / Financiero
+      const valor_contrato = toNum(plantilla?.contrato?.valor_contrato, 0);
+      const valor_pagado = toNum(plantilla?.contrato?.valor_pagado ?? plantilla?.valor_pagado, 0);
+      const saldo_pendiente = Math.max(valor_contrato - valor_pagado, 0);
+
+      const pagareObj = plantilla?.contrato?.pagare || {};
+      const pagare_numero =
+        pagareObj?.numero ??
+        plantilla?.pagare_numero ??
+        null;
+
+      const pagare_fecha_vencimiento =
+        pagareObj?.fecha_vencimiento ??
+        plantilla?.pagare_fecha_vencimiento ??
+        null;
+
+      const pagare_total = toNum(
+        pagareObj?.total ?? plantilla?.pagare_total,
+        saldo_pendiente
+      );
+
+      const pagare_cuotas = toNum(
+        pagareObj?.cuotas ?? plantilla?.pagare_cuotas,
+        0
+      );
+
+      const pagare_valor_cuota = toNum(
+        pagareObj?.valor_cuota ?? plantilla?.pagare_valor_cuota,
+        0
+      );
+
+      // ===== 4) Comercial / Sala
+      const comercial = plantilla?.comercial || {};
+      const vendedor_nombre = comercial?.vendedor_nombre ?? plantilla?.vendedor_nombre ?? null;
+      const jefe_sala = comercial?.jefe_sala ?? plantilla?.jefe_sala ?? null;
+      const codigo_sala = comercial?.codigo_sala ?? plantilla?.codigo_sala ?? null;
+
+      // ===== 5) Snapshot cliente (prioriza lo que vino del formulario, si no usa BD)
+      const clienteForm = plantilla?.cliente || {};
+      const cliente_email = clienteForm?.email ?? clienteDB?.email ?? null;
+      const cliente_direccion = clienteForm?.direccion ?? clienteDB?.direccion ?? null;
+
+      const cliente_fecha_nacimiento =
+        clienteForm?.fecha_nacimiento ??
+        clienteDB?.fecha_nacimiento ??
+        null;
+
+      const cliente_edad =
+        clienteForm?.edad ??
+        calcularEdad(cliente_fecha_nacimiento);
+
+      // ===== 6) datos_completos enriquecido (para PDF y auditoría)
+      const datos_completos = {
+        ...plantilla,
+        cliente_id,
+        comercial: {
+          ...(plantilla.comercial || {}),
+          vendedor_nombre,
+          jefe_sala,
+          codigo_sala
+        },
+        contrato: {
+          ...(plantilla.contrato || {}),
+          valor_contrato,
+          valor_pagado,
+          saldo_pendiente,
+          pagare: {
+            ...(plantilla.contrato?.pagare || {}),
+            numero: pagare_numero,
+            fecha_vencimiento: pagare_fecha_vencimiento,
+            total: pagare_total,
+            cuotas: pagare_cuotas,
+            valor_cuota: pagare_valor_cuota
+          }
+        },
+        cliente: {
+          ...(plantilla.cliente || {}),
+          email: cliente_email,
+          direccion: cliente_direccion,
+          fecha_nacimiento: cliente_fecha_nacimiento,
+          edad: cliente_edad
+        }
+      };
+
+      // ===== 7) contratoData para INSERT
       const contratoData = {
         cliente_id,
-        autorizacion_pago_id,
-        fecha_contrato: plantilla.contrato?.fecha || new Date(),
-        valor_contrato: plantilla.contrato?.valor_contrato || plantilla.autorizacion?.valor?.monto_numerico || 0,
-        anos_contrato: plantilla.contrato?.anos_contrato,
-        tarjeta_y_banco: plantilla.contrato?.tarjeta_y_banco,
-        numero_noches: plantilla.contrato?.numero_noches,
-        pagare_numero: plantilla.contrato?.pagare?.numero,
-        pagare_fecha_vencimiento: plantilla.contrato?.pagare?.fecha_vencimiento,
-        estadia_internacional: plantilla.estadia?.internacional,
-        estadia_nacional: plantilla.estadia?.nacional,
-        cortesias_por_asistencia: plantilla.beneficios?.cortesias_por_asistencia,
-        ofrecimientos_adicionales: plantilla.beneficios?.ofrecimientos_adicionales,
-        aceptacion_cliente: plantilla.aceptacion_cliente,
-        datos_completos: plantilla, // Guardar plantilla completa
-        creado_por: plantilla.metadata?.creado_por || req.user?.email || 'sistema',
-        metadata: plantilla.metadata || {}
+        numero_contrato: `CONT-${Date.now()}`,
+        valor_contrato,
+        fecha_contrato: plantilla?.contrato?.fecha ? new Date(plantilla.contrato.fecha) : new Date(),
+        creado_por: req.user?.email || 'sistema',
+        estado: 'pendiente',
+        datos_completos,
+
+        // columnas financieras/pagaré
+        valor_pagado,
+        saldo_pendiente,
+        pagare_numero,
+        pagare_fecha_vencimiento,
+        pagare_total,
+        pagare_cuotas,
+        pagare_valor_cuota,
+
+        // columnas comercial/sala
+        vendedor_nombre,
+        jefe_sala,
+        codigo_sala,
+
+        // snapshot cliente
+        cliente_email,
+        cliente_direccion,
+        cliente_fecha_nacimiento,
+        cliente_edad
       };
 
       const contrato = await ContratoViaje.create(contratoData);
+      console.log('✅ Contrato guardado en BD:', contrato.id);
 
-      res.status(201).json({
+      return res.status(201).json({
         success: true,
         message: 'Contrato creado exitosamente',
         data: contrato
       });
     } catch (error) {
-      console.error('Error al crear contrato:', error);
-      res.status(500).json({
+      console.error('❌ Error al crear contrato:', error);
+      return res.status(500).json({
         success: false,
         message: 'Error al crear contrato',
         error: error.message
@@ -423,7 +508,6 @@ const contratoController = {
         });
       }
 
-      // Generar plantilla con datos del contrato
       const plantilla = PlantillaGenerator.generarPlantilla(contrato);
 
       res.json({
@@ -455,7 +539,6 @@ const contratoController = {
         });
       }
 
-      // Generar plantilla y HTML
       const plantilla = PlantillaGenerator.generarPlantilla(contrato);
       const html = PlantillaGenerator.generarHTML(plantilla);
 
@@ -479,7 +562,7 @@ const contratoController = {
     try {
       const { id } = req.params;
       console.log('📄 Generando PDF para contrato ID:', id);
-      
+
       const contrato = await ContratoViaje.getById(id);
       console.log('📋 Contrato obtenido:', contrato ? 'SÍ' : 'NO');
 
@@ -509,7 +592,7 @@ const contratoController = {
       console.log('📄 Página creada, cargando contenido...');
       await page.setContent(html, { waitUntil: 'networkidle0' });
       console.log('✅ Contenido cargado, generando PDF...');
-      
+
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
@@ -522,14 +605,12 @@ const contratoController = {
       });
       console.log('✅ PDF generado, tamaño:', pdfBuffer.length, 'bytes');
 
-      // Configurar headers correctamente
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Length', pdfBuffer.length);
       res.setHeader('Content-Disposition', `inline; filename="contrato-${id}.pdf"`);
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Accept-Ranges', 'bytes');
-      
-      // Enviar el buffer directamente
+
       res.end(pdfBuffer, 'binary');
       console.log('✅ PDF enviado al cliente');
     } catch (error) {

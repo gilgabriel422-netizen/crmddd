@@ -4,7 +4,10 @@ const contratoController = require('../controllers/contratoController');
 const { authenticateToken } = require('../middleware/auth');
 
 // Middleware de autenticación para todas las rutas
-router.use(authenticateToken);
+router.use((req, res, next) => {
+  console.log('🔐 Ejecutando authenticateToken para:', req.method, req.path);
+  authenticateToken(req, res, next);
+});
 
 /**
  * @route   GET /api/contratos
@@ -35,11 +38,19 @@ router.get('/cliente/:clienteId', contratoController.obtenerPorCliente);
 router.get('/estado/:estado', contratoController.obtenerPorEstado);
 
 /**
- * @route   GET /api/contratos/:id
- * @desc    Obtener contrato por ID
+ * @route   POST /api/contratos/plantilla
+ * @desc    Crear contrato completo desde plantilla JSON
+ * @access  Private
+ * @body    Plantilla completa del contrato
+ */
+router.post('/plantilla', contratoController.crearDesdePlantilla);
+
+/**
+ * @route   POST /api/contratos
+ * @desc    Crear nuevo contrato simple
  * @access  Private
  */
-router.get('/:id', contratoController.obtenerPorId);
+router.post('/', contratoController.crear);
 
 /**
  * @route   GET /api/contratos/:id/plantilla
@@ -63,19 +74,11 @@ router.get('/:id/documento', contratoController.generarDocumento);
 router.get('/:id/documento/pdf', contratoController.generarDocumentoPdf);
 
 /**
- * @route   POST /api/contratos
- * @desc    Crear nuevo contrato simple
+ * @route   GET /api/contratos/:id
+ * @desc    Obtener contrato por ID
  * @access  Private
  */
-router.post('/', contratoController.crear);
-
-/**
- * @route   POST /api/contratos/plantilla
- * @desc    Crear contrato completo desde plantilla JSON
- * @access  Private
- * @body    Plantilla completa del contrato
- */
-router.post('/plantilla', contratoController.crearDesdePlantilla);
+router.get('/:id', contratoController.obtenerPorId);
 
 /**
  * @route   PUT /api/contratos/:id
